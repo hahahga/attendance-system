@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block title %}考勤管理{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>考勤管理</h2>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>今日考勤状态</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>签到时间:</strong> <span id="check_in_time">--:--:--</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>签退时间:</strong> <span id="check_out_time">--:--:--</span></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>工作时长:</strong> <span id="work_hours">0小时0分钟</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>状态:</strong> <span id="attendance_status">未签到</span></p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button id="clock_in_btn" type="button" class="btn btn-success">签到</button>
+                        <button id="clock_out_btn" type="button" class="btn btn-warning">签退</button>
+                        <button id="face_clock_in_btn" type="button" class="btn btn-info">人脸签到</button>
+                        <button id="face_clock_out_btn" type="button" class="btn btn-secondary">人脸签退</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>本周统计</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>出勤天数:</strong> <span id="week_present">0</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>迟到次数:</strong> <span id="week_late">0</span></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>早退次数:</strong> <span id="week_early">0</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>请假天数:</strong> <span id="week_leave">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>快速操作</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('attendance_history') }}" class="btn btn-primary btn-block">考勤记录</a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('attendance_calendar') }}" class="btn btn-info btn-block">考勤日历</a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('leave_apply') }}" class="btn btn-success btn-block">申请请假</a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('leave_history') }}" class="btn btn-warning btn-block">请假记录</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>最近考勤记录</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>签到时间</th>
+                                    <th>签退时间</th>
+                                    <th>工作时长</th>
+                                    <th>状态</th>
+                                    <th>备注</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent_attendance">
+                                <!-- 动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 人脸识别模态框 -->
+    <div class="modal fade" id="faceRecognitionModal" tabindex="-1" role="dialog" aria-labelledby="faceRecognitionModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="faceRecognitionModalLabel">人脸识别</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <video id="faceVideo" width="320" height="240" autoplay></video>
+                        <canvas id="faceCanvas" width="320" height="240" style="display:none;"></canvas>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <button id="startCameraBtn" class="btn btn-primary">启动摄像头</button>
+                        <button id="captureFaceBtn" class="btn btn-success" disabled>拍照识别</button>
+                        <button id="stopCameraBtn" class="btn btn-danger" disabled>关闭摄像头</button>
+                    </div>
+                    <div id="faceResult" class="mt-3 text-center"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 页面加载时获取今日考勤状态
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTodayAttendance();
+        loadRecentAttendance();
+        loadWeekStatistics();
+        
+        // 上班签到按钮点击事件
+        document.getElementById('clock_in_btn').addEventListener('click', function() {
+            // 直接跳转到人脸识别签到页面
+            window.location.href = '/attendance/face_clock_in';
+        });
+        
+        // 绑定签退按钮事件
+        document.getElementById('clock_out_btn').addEventListener('click', function() {
+            // 直接跳转到人脸识别签退页面
+            window.location.href = '/attendance/face_clock_out';
+        });
+        
+        // 绑定人脸签到按钮事件
+        document.getElementById('face_clock_in_btn').addEventListener('click', function() {
+            openFaceRecognitionModal('clock_in');
+        });
+        
+        // 绑定人脸签退按钮事件
+        document.getElementById('face_clock_out_btn').addEventListener('click', function() {
+            openFaceRecognitionModal('clock_out');
+        });
+        
+        // 绑定摄像头控制按钮事件
+        document.getElementById('startCameraBtn').addEventListener('click', startCamera);
+        document.getElementById('captureFaceBtn').addEventListener('click', captureFace);
+        document.getElementById('stopCameraBtn').addEventListener('click', stopCamera);
+    });
+    
+    // 加载今日考勤状态
+    function loadTodayAttendance() {
+        fetch('/api/today_attendance')
+            .then(response => response.json())
+            .then(data => {
+                if (data.check_in_time) {
+                    document.getElementById('check_in_time').textContent = data.check_in_time;
+                    document.getElementById('clock_in_btn').disabled = true;
+                }
+                
+                if (data.check_out_time) {
+                    document.getElementById('check_out_time').textContent = data.check_out_time;
+                    document.getElementById('clock_out_btn').disabled = true;
+                }
+                
+                if (data.work_hours) {
+                    document.getElementById('work_hours').textContent = data.work_hours;
+                }
+                
+                document.getElementById('attendance_status').textContent = data.status || '未签到';
+            })
+            .catch(error => {
+                console.error('Error loading today attendance:', error);
+            });
+    }
+    
+    // 加载最近考勤记录
+    function loadRecentAttendance() {
+        fetch('/api/recent_attendance')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('recent_attendance');
+                tbody.innerHTML = '';
+                
+                data.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${record.date}</td>
+                        <td>${record.check_in_time || '--:--:--'}</td>
+                        <td>${record.check_out_time || '--:--:--'}</td>
+                        <td>${record.work_hours || '--'}</td>
+                        <td>${getStatusBadge(record.status)}</td>
+                        <td>${record.notes || ''}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading recent attendance:', error);
+            });
+    }
+    
+    // 加载本周统计
+    function loadWeekStatistics() {
+        fetch('/api/week_statistics')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('week_present').textContent = data.present || 0;
+                document.getElementById('week_late').textContent = data.late || 0;
+                document.getElementById('week_early').textContent = data.early || 0;
+                document.getElementById('week_leave').textContent = data.leave || 0;
+            })
+            .catch(error => {
+                console.error('Error loading week statistics:', error);
+            });
+    }
+    
+    // 签到
+    function clockIn() {
+        fetch('/attendance/clock_in', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('签到成功');
+                loadTodayAttendance();
+                loadRecentAttendance();
+            } else {
+                alert(data.detail || '签到失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error clocking in:', error);
+            alert('签到失败，请稍后再试');
+        });
+    }
+    
+    // 签退
+    function clockOut() {
+        fetch('/attendance/clock_out', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('签退成功');
+                loadTodayAttendance();
+                loadRecentAttendance();
+            } else {
+                alert(data.detail || '签退失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error clocking out:', error);
+            alert('签退失败，请稍后再试');
+        });
+    }
+    
+    // 获取状态徽章
+    function getStatusBadge(status) {
+        switch(status) {
+            case 'present':
+                return '<span class="badge badge-success">出勤</span>';
+            case 'late':
+                return '<span class="badge badge-warning">迟到</span>';
+            case 'early':
+                return '<span class="badge badge-warning">早退</span>';
+            case 'absent':
+                return '<span class="badge badge-danger">缺勤</span>';
+            case 'leave':
+                return '<span class="badge badge-info">请假</span>';
+            default:
+                return '<span class="badge badge-secondary">未知</span>';
+        }
+    }
+    
+    // 获取CSRF令牌
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+    
+    // 全局变量
+    let stream = null;
+    let currentAction = null; // 'clock_in' 或 'clock_out'
+    
+    // 打开人脸识别模态框
+    function openFaceRecognitionModal(action) {
+        currentAction = action;
+        document.getElementById('faceResult').innerHTML = '';
+        $('#faceRecognitionModal').modal('show');
+    }
+    
+    // 启动摄像头
+    function startCamera() {
+        const video = document.getElementById('faceVideo');
+        const startBtn = document.getElementById('startCameraBtn');
+        const captureBtn = document.getElementById('captureFaceBtn');
+        const stopBtn = document.getElementById('stopCameraBtn');
+        
+        // 请求摄像头权限
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(s) {
+                stream = s;
+                video.srcObject = stream;
+                
+                // 更新按钮状态
+                startBtn.disabled = true;
+                captureBtn.disabled = false;
+                stopBtn.disabled = false;
+            })
+            .catch(function(err) {
+                console.error('无法访问摄像头:', err);
+                document.getElementById('faceResult').innerHTML = '<div class="alert alert-danger">无法访问摄像头，请检查权限设置</div>';
+            });
+    }
+    
+    // 拍照识别
+    function captureFace() {
+        const video = document.getElementById('faceVideo');
+        const canvas = document.getElementById('faceCanvas');
+        const context = canvas.getContext('2d');
+        
+        // 拍照
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // 获取图像数据
+        const imageData = canvas.toDataURL('image/jpeg');
+        
+        // 显示识别中状态
+        document.getElementById('faceResult').innerHTML = '<div class="alert alert-info">正在识别中...</div>';
+        
+        // 根据当前操作调用相应的API
+        const apiUrl = currentAction === 'clock_in' ? '/attendance/face_clock_in' : '/attendance/face_clock_out';
+        
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                image: imageData
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('faceResult').innerHTML = `<div class="alert alert-success">${data.detail || data.message}</div>`;
+                
+                // 更新考勤状态
+                loadTodayAttendance();
+                loadRecentAttendance();
+                
+                // 延迟关闭模态框
+                setTimeout(function() {
+                    $('#faceRecognitionModal').modal('hide');
+                    stopCamera();
+                }, 2000);
+            } else {
+                document.getElementById('faceResult').innerHTML = `<div class="alert alert-danger">${data.detail || data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('人脸识别失败:', error);
+            document.getElementById('faceResult').innerHTML = '<div class="alert alert-danger">人脸识别失败，请稍后再试</div>';
+        });
+    }
+    
+    // 停止摄像头
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+        
+        const video = document.getElementById('faceVideo');
+        video.srcObject = null;
+        
+        // 更新按钮状态
+        document.getElementById('startCameraBtn').disabled = false;
+        document.getElementById('captureFaceBtn').disabled = true;
+        document.getElementById('stopCameraBtn').disabled = true;
+    }
+    
+    // 模态框关闭时停止摄像头
+    $('#faceRecognitionModal').on('hidden.bs.modal', function () {
+        stopCamera();
+    });
+</script>
+{% endblock %}

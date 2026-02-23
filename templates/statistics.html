@@ -1,0 +1,797 @@
+{% extends "base.html" %}
+
+{% block title %}考勤统计 - 考勤系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">考勤统计</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="periodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-calendar3"></i> <span id="currentPeriod">本月</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item period-item" href="#" data-period="today">今天</a></li>
+                        <li><a class="dropdown-item period-item" href="#" data-period="week">本周</a></li>
+                        <li><a class="dropdown-item period-item" href="#" data-period="month">本月</a></li>
+                        <li><a class="dropdown-item period-item" href="#" data-period="quarter">本季度</a></li>
+                        <li><a class="dropdown-item period-item" href="#" data-period="year">本年</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#customPeriodModal">自定义时间段</a></li>
+                    </ul>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="exportBtn">
+                        <i class="bi bi-download"></i> 导出报表
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 统计概览卡片 -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">正常出勤</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="normalAttendanceCount">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check-circle text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">迟到次数</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="lateCount">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-clock-history text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">早退次数</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="earlyCount">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-arrow-left-circle text-danger" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">缺勤次数</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="absentCount">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-x-circle text-info" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 图表区域 -->
+<div class="row mb-4">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">考勤趋势图</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="chartTypeDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                        <a class="dropdown-item chart-type-item" href="#" data-chart-type="line">折线图</a>
+                        <a class="dropdown-item chart-type-item" href="#" data-chart-type="bar">柱状图</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="attendanceTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">考勤状态分布</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="attendanceStatusChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-primary"></i> 正常
+                    </span>
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-warning"></i> 迟到
+                    </span>
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-danger"></i> 早退
+                    </span>
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-info"></i> 缺勤
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 部门考勤对比 -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">部门考勤对比</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="departmentComparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">工作时长分布</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="workingHoursChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 员工考勤排名 -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">出勤率排名</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="attendanceRateTable">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>员工</th>
+                                <th>部门</th>
+                                <th>出勤率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 数据将通过JavaScript填充 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">加班时长排名</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="overtimeRankTable">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>员工</th>
+                                <th>部门</th>
+                                <th>加班时长</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 数据将通过JavaScript填充 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 自定义时间段模态框 -->
+<div class="modal fade" id="customPeriodModal" tabindex="-1" aria-labelledby="customPeriodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customPeriodModalLabel">选择自定义时间段</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="customPeriodForm">
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">开始日期</label>
+                        <input type="date" class="form-control" id="startDate" name="start_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">结束日期</label>
+                        <input type="date" class="form-control" id="endDate" name="end_date" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="applyCustomPeriod">应用</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 导出选项模态框 -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">导出报表</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportForm">
+                    <div class="mb-3">
+                        <label for="exportType" class="form-label">导出类型</label>
+                        <select class="form-select" id="exportType" name="export_type">
+                            <option value="summary">统计摘要</option>
+                            <option value="detail">详细记录</option>
+                            <option value="department">部门统计</option>
+                            <option value="individual">个人统计</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="exportFormat" class="form-label">导出格式</label>
+                        <select class="form-select" id="exportFormat" name="export_format">
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="pdf">PDF (.pdf)</option>
+                            <option value="csv">CSV (.csv)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="exportPeriod" class="form-label">时间范围</label>
+                        <select class="form-select" id="exportPeriod" name="export_period">
+                            <option value="current">当前选择的时间段</option>
+                            <option value="custom">自定义时间段</option>
+                        </select>
+                    </div>
+                    
+                    <div id="customExportDateRange" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="exportStartDate" class="form-label">开始日期</label>
+                                <input type="date" class="form-control" id="exportStartDate" name="export_start_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="exportEndDate" class="form-label">结束日期</label>
+                                <input type="date" class="form-control" id="exportEndDate" name="export_end_date">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="includeCharts" class="form-label">包含图表</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeCharts" name="include_charts" checked>
+                            <label class="form-check-label" for="includeCharts">在导出文件中包含统计图表</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="startExportBtn">开始导出</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化变量
+    let currentPeriod = 'month';
+    let customStartDate = null;
+    let customEndDate = null;
+    let attendanceTrendChart = null;
+    let attendanceStatusChart = null;
+    let departmentComparisonChart = null;
+    let workingHoursChart = null;
+    
+    // 初始化页面
+    initPage();
+    
+    // 绑定事件
+    bindEvents();
+    
+    // 初始化页面
+    function initPage() {
+        loadStatistics();
+        initCharts();
+        loadAttendanceRateRanking();
+        loadOvertimeRanking();
+    }
+    
+    // 绑定事件
+    function bindEvents() {
+        // 时间段选择
+        document.querySelectorAll('.period-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const period = this.getAttribute('data-period');
+                changePeriod(period);
+            });
+        });
+        
+        // 自定义时间段
+        document.getElementById('applyCustomPeriod').addEventListener('click', function() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                showToast('请选择开始和结束日期', 'warning');
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                showToast('开始日期不能晚于结束日期', 'warning');
+                return;
+            }
+            
+            customStartDate = startDate;
+            customEndDate = endDate;
+            currentPeriod = 'custom';
+            
+            document.getElementById('currentPeriod').textContent = `${startDate} 至 ${endDate}`;
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('customPeriodModal'));
+            modal.hide();
+            
+            loadStatistics();
+            updateCharts();
+        });
+        
+        // 图表类型切换
+        document.querySelectorAll('.chart-type-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const chartType = this.getAttribute('data-chart-type');
+                updateChartType(chartType);
+            });
+        });
+        
+        // 导出按钮
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('exportModal'));
+            modal.show();
+        });
+        
+        // 导出时间段选择
+        document.getElementById('exportPeriod').addEventListener('change', function() {
+            const customDateRange = document.getElementById('customExportDateRange');
+            if (this.value === 'custom') {
+                customDateRange.style.display = 'block';
+            } else {
+                customDateRange.style.display = 'none';
+            }
+        });
+        
+        // 开始导出
+        document.getElementById('startExportBtn').addEventListener('click', function() {
+            exportReport();
+        });
+    }
+    
+    // 改变时间段
+    function changePeriod(period) {
+        currentPeriod = period;
+        
+        const periodText = {
+            'today': '今天',
+            'week': '本周',
+            'month': '本月',
+            'quarter': '本季度',
+            'year': '本年'
+        };
+        
+        document.getElementById('currentPeriod').textContent = periodText[period] || '自定义';
+        
+        loadStatistics();
+        updateCharts();
+    }
+    
+    // 加载统计数据
+    function loadStatistics() {
+        let url = `/api/v1/statistics/summary?period=${currentPeriod}`;
+        
+        if (currentPeriod === 'custom' && customStartDate && customEndDate) {
+            url += `&start_date=${customStartDate}&end_date=${customEndDate}`;
+        }
+        
+        axios.get(url)
+            .then(response => {
+                const data = response.data;
+                
+                // 更新统计卡片
+                document.getElementById('normalAttendanceCount').textContent = data.normal_count || 0;
+                document.getElementById('lateCount').textContent = data.late_count || 0;
+                document.getElementById('earlyCount').textContent = data.early_count || 0;
+                document.getElementById('absentCount').textContent = data.absent_count || 0;
+            })
+            .catch(error => {
+                console.error('加载统计数据失败:', error);
+            });
+    }
+    
+    // 初始化图表
+    function initCharts() {
+        // 考勤趋势图
+        const trendCtx = document.getElementById('attendanceTrendChart').getContext('2d');
+        attendanceTrendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: '正常',
+                        data: [],
+                        borderColor: 'rgba(54, 162, 235, 0.8)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: '迟到',
+                        data: [],
+                        borderColor: 'rgba(255, 206, 86, 0.8)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: '早退',
+                        data: [],
+                        borderColor: 'rgba(255, 99, 132, 0.8)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: '缺勤',
+                        data: [],
+                        borderColor: 'rgba(75, 192, 192, 0.8)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // 考勤状态分布图
+        const statusCtx = document.getElementById('attendanceStatusChart').getContext('2d');
+        attendanceStatusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['正常', '迟到', '早退', '缺勤'],
+                datasets: [{
+                    data: [0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(75, 192, 192, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+        
+        // 部门考勤对比图
+        const deptCtx = document.getElementById('departmentComparisonChart').getContext('2d');
+        departmentComparisonChart = new Chart(deptCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: '正常',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    },
+                    {
+                        label: '迟到',
+                        data: [],
+                        backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                    },
+                    {
+                        label: '早退',
+                        data: [],
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                    },
+                    {
+                        label: '缺勤',
+                        data: [],
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // 工作时长分布图
+        const hoursCtx = document.getElementById('workingHoursChart').getContext('2d');
+        workingHoursChart = new Chart(hoursCtx, {
+            type: 'bar',
+            data: {
+                labels: ['<6小时', '6-7小时', '7-8小时', '8-9小时', '9-10小时', '>10小时'],
+                datasets: [{
+                    label: '员工人数',
+                    data: [0, 0, 0, 0, 0, 0],
+                    backgroundColor: 'rgba(153, 102, 255, 0.8)',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // 加载图表数据
+        updateCharts();
+    }
+    
+    // 更新图表
+    function updateCharts() {
+        let url = `/api/v1/statistics/charts?period=${currentPeriod}`;
+        
+        if (currentPeriod === 'custom' && customStartDate && customEndDate) {
+            url += `&start_date=${customStartDate}&end_date=${customEndDate}`;
+        }
+        
+        axios.get(url)
+            .then(response => {
+                const data = response.data;
+                
+                // 更新考勤趋势图
+                if (data.trend) {
+                    attendanceTrendChart.data.labels = data.trend.labels || [];
+                    attendanceTrendChart.data.datasets[0].data = data.trend.normal || [];
+                    attendanceTrendChart.data.datasets[1].data = data.trend.late || [];
+                    attendanceTrendChart.data.datasets[2].data = data.trend.early || [];
+                    attendanceTrendChart.data.datasets[3].data = data.trend.absent || [];
+                    attendanceTrendChart.update();
+                }
+                
+                // 更新考勤状态分布图
+                if (data.status) {
+                    attendanceStatusChart.data.datasets[0].data = [
+                        data.status.normal || 0,
+                        data.status.late || 0,
+                        data.status.early || 0,
+                        data.status.absent || 0
+                    ];
+                    attendanceStatusChart.update();
+                }
+                
+                // 更新部门考勤对比图
+                if (data.departments) {
+                    departmentComparisonChart.data.labels = data.departments.labels || [];
+                    departmentComparisonChart.data.datasets[0].data = data.departments.normal || [];
+                    departmentComparisonChart.data.datasets[1].data = data.departments.late || [];
+                    departmentComparisonChart.data.datasets[2].data = data.departments.early || [];
+                    departmentComparisonChart.data.datasets[3].data = data.departments.absent || [];
+                    departmentComparisonChart.update();
+                }
+                
+                // 更新工作时长分布图
+                if (data.working_hours) {
+                    workingHoursChart.data.datasets[0].data = data.working_hours || [];
+                    workingHoursChart.update();
+                }
+            })
+            .catch(error => {
+                console.error('加载图表数据失败:', error);
+            });
+    }
+    
+    // 更新图表类型
+    function updateChartType(chartType) {
+        attendanceTrendChart.config.type = chartType;
+        attendanceTrendChart.update();
+    }
+    
+    // 加载出勤率排名
+    function loadAttendanceRateRanking() {
+        let url = `/api/v1/statistics/ranking/attendance-rate?period=${currentPeriod}`;
+        
+        if (currentPeriod === 'custom' && customStartDate && customEndDate) {
+            url += `&start_date=${customStartDate}&end_date=${customEndDate}`;
+        }
+        
+        axios.get(url)
+            .then(response => {
+                const data = response.data;
+                const tbody = document.querySelector('#attendanceRateTable tbody');
+                
+                tbody.innerHTML = '';
+                
+                data.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${item.name}</td>
+                        <td>${item.department}</td>
+                        <td>${(item.rate * 100).toFixed(1)}%</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('加载出勤率排名失败:', error);
+            });
+    }
+    
+    // 加载加班时长排名
+    function loadOvertimeRanking() {
+        let url = `/api/v1/statistics/ranking/overtime?period=${currentPeriod}`;
+        
+        if (currentPeriod === 'custom' && customStartDate && customEndDate) {
+            url += `&start_date=${customStartDate}&end_date=${customEndDate}`;
+        }
+        
+        axios.get(url)
+            .then(response => {
+                const data = response.data;
+                const tbody = document.querySelector('#overtimeRankTable tbody');
+                
+                tbody.innerHTML = '';
+                
+                data.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${item.name}</td>
+                        <td>${item.department}</td>
+                        <td>${item.hours.toFixed(1)}小时</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('加载加班时长排名失败:', error);
+            });
+    }
+    
+    // 导出报表
+    function exportReport() {
+        const form = document.getElementById('exportForm');
+        const formData = new FormData(form);
+        const exportData = Object.fromEntries(formData.entries);
+        
+        // 添加时间段参数
+        exportData.period = currentPeriod;
+        if (currentPeriod === 'custom' && customStartDate && customEndDate) {
+            exportData.start_date = customStartDate;
+            exportData.end_date = customEndDate;
+        }
+        
+        // 显示加载提示
+        showToast('正在生成报表，请稍候...', 'info');
+        
+        axios.post('/api/v1/statistics/export', exportData)
+            .then(response => {
+                // 下载文件
+                const downloadLink = document.createElement('a');
+                downloadLink.href = response.data.download_url;
+                downloadLink.download = response.data.filename;
+                downloadLink.click();
+                
+                // 关闭模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+                modal.hide();
+                
+                showToast('报表导出成功', 'success');
+            })
+            .catch(error => {
+                console.error('导出报表失败:', error);
+                showToast(error.response?.data?.detail || '导出失败', 'danger');
+            });
+    }
+});
+</script>
+{% endblock %}

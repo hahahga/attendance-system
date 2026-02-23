@@ -1,0 +1,879 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理 - 考勤系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">用户管理</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <a href="/user/add" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-person-plus"></i> 添加用户
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="exportBtn">
+                        <i class="bi bi-download"></i> 导出
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="filterBtn">
+                        <i class="bi bi-funnel"></i> 筛选
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 筛选表单 -->
+<div class="row" id="filterForm" style="display: none;">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">筛选条件</h5>
+            </div>
+            <div class="card-body">
+                <form id="userFilterForm">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="username" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" name="username">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="realName" class="form-label">姓名</label>
+                            <input type="text" class="form-control" id="realName" name="real_name">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="department" class="form-label">部门</label>
+                            <select class="form-select" id="department" name="department_id">
+                                <option value="">全部</option>
+                                <option value="1">技术部</option>
+                                <option value="2">人事部</option>
+                                <option value="3">财务部</option>
+                                <option value="4">市场部</option>
+                                <option value="5">行政部</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="role" class="form-label">角色</label>
+                            <select class="form-select" id="role" name="role">
+                                <option value="">全部</option>
+                                <option value="admin">管理员</option>
+                                <option value="hr">人事</option>
+                                <option value="manager">经理</option>
+                                <option value="employee">员工</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="status" class="form-label">状态</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">全部</option>
+                                <option value="active">在职</option>
+                                <option value="inactive">离职</option>
+                                <option value="suspended">停职</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="joinDateStart" class="form-label">入职日期开始</label>
+                            <input type="date" class="form-control" id="joinDateStart" name="join_date_start">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="joinDateEnd" class="form-label">入职日期结束</label>
+                            <input type="date" class="form-control" id="joinDateEnd" name="join_date_end">
+                        </div>
+                        <div class="col-md-3 mb-3 d-flex align-items-end">
+                            <div class="btn-group w-100">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> 查询
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="resetFilterBtn">
+                                    <i class="bi bi-arrow-clockwise"></i> 重置
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="hideFilterBtn">
+                                    <i class="bi bi-x"></i> 关闭
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 统计信息 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">总用户数</h5>
+                <h2 id="totalUsers">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">在职用户</h5>
+                <h2 id="activeUsers">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">本月新增</h5>
+                <h2 id="newUsers">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">离职用户</h5>
+                <h2 id="inactiveUsers">0</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 用户列表 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">用户列表</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="userTable">
+                        <thead>
+                            <tr>
+                                <th>头像</th>
+                                <th>用户名</th>
+                                <th>姓名</th>
+                                <th>邮箱</th>
+                                <th>部门</th>
+                                <th>职位</th>
+                                <th>角色</th>
+                                <th>状态</th>
+                                <th>入职日期</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- 数据将通过JavaScript动态填充 -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页 -->
+                <nav aria-label="用户列表分页">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- 分页按钮将通过JavaScript动态生成 -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 用户详情模态框 -->
+<div class="modal fade" id="userDetailModal" tabindex="-1" aria-labelledby="userDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userDetailModalLabel">用户详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <img id="detailAvatar" src="/static/images/default-avatar.png" alt="用户头像" class="img-fluid rounded-circle mb-3" style="max-width: 150px;">
+                        <h5 id="detailName"></h5>
+                        <p id="detailPosition" class="text-muted"></p>
+                        <div id="detailStatus" class="mb-3"></div>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>用户名:</strong></td>
+                                <td id="detailUsername"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>工号:</strong></td>
+                                <td id="detailEmployeeId"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>邮箱:</strong></td>
+                                <td id="detailEmail"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>手机:</strong></td>
+                                <td id="detailPhone"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>部门:</strong></td>
+                                <td id="detailDepartment"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>角色:</strong></td>
+                                <td id="detailRole"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>入职日期:</strong></td>
+                                <td id="detailJoinDate"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>最后登录:</strong></td>
+                                <td id="detailLastLogin"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>考勤统计</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card text-center bg-info text-white">
+                                    <div class="card-body">
+                                        <h6>本月出勤</h6>
+                                        <h5 id="detailMonthlyAttendance">0天</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center bg-warning text-white">
+                                    <div class="card-body">
+                                        <h6>迟到次数</h6>
+                                        <h5 id="detailLateCount">0次</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center bg-success text-white">
+                                    <div class="card-body">
+                                        <h6>请假天数</h6>
+                                        <h5 id="detailLeaveDays">0天</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center bg-danger text-white">
+                                    <div class="card-body">
+                                        <h6>缺勤次数</h6>
+                                        <h5 id="detailAbsentCount">0次</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-warning" id="editUserBtn">编辑</button>
+                <button type="button" class="btn btn-danger" id="resetPasswordBtn">重置密码</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑用户模态框 -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">编辑用户</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="editUserId" name="id">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editUsername" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="editUsername" name="username" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editRealName" class="form-label">姓名</label>
+                            <input type="text" class="form-control" id="editRealName" name="real_name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editEmail" class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="editEmail" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editPhone" class="form-label">手机</label>
+                            <input type="tel" class="form-control" id="editPhone" name="phone">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editDepartment" class="form-label">部门</label>
+                            <select class="form-select" id="editDepartment" name="department_id" required>
+                                <option value="1">技术部</option>
+                                <option value="2">人事部</option>
+                                <option value="3">财务部</option>
+                                <option value="4">市场部</option>
+                                <option value="5">行政部</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editPosition" class="form-label">职位</label>
+                            <input type="text" class="form-control" id="editPosition" name="position">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editRole" class="form-label">角色</label>
+                            <select class="form-select" id="editRole" name="role" required>
+                                <option value="admin">管理员</option>
+                                <option value="hr">人事</option>
+                                <option value="manager">经理</option>
+                                <option value="employee">员工</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editStatus" class="form-label">状态</label>
+                            <select class="form-select" id="editStatus" name="status" required>
+                                <option value="active">在职</option>
+                                <option value="inactive">离职</option>
+                                <option value="suspended">停职</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editJoinDate" class="form-label">入职日期</label>
+                            <input type="date" class="form-control" id="editJoinDate" name="join_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editEmployeeId" class="form-label">工号</label>
+                            <input type="text" class="form-control" id="editEmployeeId" name="employee_id">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveUserBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 重置密码模态框 -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetPasswordModalLabel">重置密码</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="resetPasswordForm">
+                    <input type="hidden" id="resetUserId" name="user_id">
+                    
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">新密码</label>
+                        <input type="password" class="form-control" id="newPassword" name="new_password" required>
+                        <div class="form-text">密码长度至少8位，包含字母和数字</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">确认密码</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendEmail" name="send_email" checked>
+                            <label class="form-check-label" for="sendEmail">
+                                发送新密码到用户邮箱
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmResetBtn">确认重置</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化变量
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalItems = 0;
+    let currentFilters = {};
+    let currentUserId = null;
+    
+    // 加载用户列表
+    loadUsers();
+    
+    // 加载统计信息
+    loadStatistics();
+    
+    // 筛选按钮点击事件
+    document.getElementById('filterBtn').addEventListener('click', function() {
+        const filterForm = document.getElementById('filterForm');
+        filterForm.style.display = filterForm.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    // 隐藏筛选表单
+    document.getElementById('hideFilterBtn').addEventListener('click', function() {
+        document.getElementById('filterForm').style.display = 'none';
+    });
+    
+    // 筛选表单提交
+    document.getElementById('userFilterForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 获取筛选条件
+        const formData = new FormData(this);
+        currentFilters = Object.fromEntries(formData.entries());
+        
+        // 重置页码并重新加载数据
+        currentPage = 1;
+        loadUsers();
+        loadStatistics();
+    });
+    
+    // 重置筛选条件
+    document.getElementById('resetFilterBtn').addEventListener('click', function() {
+        document.getElementById('userFilterForm').reset();
+        currentFilters = {};
+        currentPage = 1;
+        loadUsers();
+        loadStatistics();
+    });
+    
+    // 导出按钮点击事件
+    document.getElementById('exportBtn').addEventListener('click', function() {
+        exportUsers();
+    });
+    
+    // 编辑用户按钮
+    document.getElementById('editUserBtn').addEventListener('click', function() {
+        showEditUserModal(currentUserId);
+    });
+    
+    // 重置密码按钮
+    document.getElementById('resetPasswordBtn').addEventListener('click', function() {
+        showResetPasswordModal(currentUserId);
+    });
+    
+    // 保存用户编辑
+    document.getElementById('saveUserBtn').addEventListener('click', function() {
+        saveUser();
+    });
+    
+    // 确认重置密码
+    document.getElementById('confirmResetBtn').addEventListener('click', function() {
+        resetPassword();
+    });
+    
+    // 加载用户列表函数
+    function loadUsers() {
+        const params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('page_size', pageSize);
+        
+        // 添加筛选条件
+        Object.keys(currentFilters).forEach(key => {
+            if (currentFilters[key]) {
+                params.append(key, currentFilters[key]);
+            }
+        });
+        
+        axios.get(`/api/v1/users?${params.toString()}`)
+            .then(response => {
+                const data = response.data;
+                
+                // 更新分页信息
+                totalItems = data.total;
+                updatePagination();
+                
+                // 更新表格数据
+                updateUserTable(data.items);
+            })
+            .catch(error => {
+                console.error('加载用户列表失败:', error);
+                showToast('加载用户列表失败', 'danger');
+            });
+    }
+    
+    // 更新用户表格
+    function updateUserTable(users) {
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = '';
+        
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center">暂无用户</td></tr>';
+            return;
+        }
+        
+        users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <img src="${user.avatar || '/static/images/default-avatar.png'}" alt="${user.real_name}" class="rounded-circle" width="40" height="40">
+                </td>
+                <td>${user.username}</td>
+                <td>${user.real_name}</td>
+                <td>${user.email}</td>
+                <td>${user.department_name}</td>
+                <td>${user.position || '--'}</td>
+                <td><span class="badge ${getRoleBadgeClass(user.role)}">${getRoleText(user.role)}</span></td>
+                <td><span class="badge ${getStatusBadgeClass(user.status)}">${getStatusText(user.status)}</span></td>
+                <td>${user.join_date}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-info view-btn" data-id="${user.id}">
+                        <i class="bi bi-eye"></i> 查看
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning edit-btn" data-id="${user.id}">
+                        <i class="bi bi-pencil"></i> 编辑
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger reset-btn" data-id="${user.id}">
+                        <i class="bi bi-key"></i> 重置密码
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        // 添加按钮事件
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-id');
+                viewUserDetail(userId);
+            });
+        });
+        
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-id');
+                showEditUserModal(userId);
+            });
+        });
+        
+        document.querySelectorAll('.reset-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-id');
+                showResetPasswordModal(userId);
+            });
+        });
+    }
+    
+    // 更新分页控件
+    function updatePagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        
+        const totalPages = Math.ceil(totalItems / pageSize);
+        
+        // 上一页按钮
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage - 1}">上一页</a>`;
+        pagination.appendChild(prevLi);
+        
+        // 页码按钮
+        for (let i = 1; i <= totalPages; i++) {
+            // 只显示当前页附近的页码
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                pagination.appendChild(li);
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                // 添加省略号
+                const li = document.createElement('li');
+                li.className = 'page-item disabled';
+                li.innerHTML = '<a class="page-link" href="#">...</a>';
+                pagination.appendChild(li);
+            }
+        }
+        
+        // 下一页按钮
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage + 1}">下一页</a>`;
+        pagination.appendChild(nextLi);
+        
+        // 添加页码点击事件
+        pagination.querySelectorAll('.page-link:not(.disabled)').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = parseInt(this.getAttribute('data-page'));
+                if (page !== currentPage) {
+                    currentPage = page;
+                    loadUsers();
+                }
+            });
+        });
+    }
+    
+    // 加载统计信息
+    function loadStatistics() {
+        const params = new URLSearchParams();
+        
+        // 添加筛选条件
+        Object.keys(currentFilters).forEach(key => {
+            if (currentFilters[key]) {
+                params.append(key, currentFilters[key]);
+            }
+        });
+        
+        axios.get(`/api/v1/users/statistics?${params.toString()}`)
+            .then(response => {
+                const data = response.data;
+                
+                document.getElementById('totalUsers').textContent = data.total_users || 0;
+                document.getElementById('activeUsers').textContent = data.active_users || 0;
+                document.getElementById('newUsers').textContent = data.new_users || 0;
+                document.getElementById('inactiveUsers').textContent = data.inactive_users || 0;
+            })
+            .catch(error => {
+                console.error('加载统计信息失败:', error);
+            });
+    }
+    
+    // 查看用户详情
+    function viewUserDetail(userId) {
+        axios.get(`/api/v1/users/${userId}`)
+            .then(response => {
+                const data = response.data;
+                currentUserId = data.id;
+                
+                // 填充基本信息
+                document.getElementById('detailAvatar').src = data.avatar || '/static/images/default-avatar.png';
+                document.getElementById('detailName').textContent = data.real_name;
+                document.getElementById('detailPosition').textContent = data.position || '--';
+                
+                // 设置状态
+                const statusElement = document.getElementById('detailStatus');
+                statusElement.innerHTML = `<span class="badge ${getStatusBadgeClass(data.status)}">${getStatusText(data.status)}</span>`;
+                
+                // 填充详细信息
+                document.getElementById('detailUsername').textContent = data.username;
+                document.getElementById('detailEmployeeId').textContent = data.employee_id || '--';
+                document.getElementById('detailEmail').textContent = data.email;
+                document.getElementById('detailPhone').textContent = data.phone || '--';
+                document.getElementById('detailDepartment').textContent = data.department_name;
+                document.getElementById('detailRole').innerHTML = `<span class="badge ${getRoleBadgeClass(data.role)}">${getRoleText(data.role)}</span>`;
+                document.getElementById('detailJoinDate').textContent = data.join_date;
+                document.getElementById('detailLastLogin').textContent = data.last_login || '--';
+                
+                // 填充考勤统计
+                document.getElementById('detailMonthlyAttendance').textContent = data.monthly_attendance || 0;
+                document.getElementById('detailLateCount').textContent = data.late_count || 0;
+                document.getElementById('detailLeaveDays').textContent = data.leave_days || 0;
+                document.getElementById('detailAbsentCount').textContent = data.absent_count || 0;
+                
+                // 显示模态框
+                const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('获取用户详情失败:', error);
+                showToast('获取用户详情失败', 'danger');
+            });
+    }
+    
+    // 显示编辑用户模态框
+    function showEditUserModal(userId) {
+        axios.get(`/api/v1/users/${userId}`)
+            .then(response => {
+                const data = response.data;
+                
+                // 填充表单数据
+                document.getElementById('editUserId').value = data.id;
+                document.getElementById('editUsername').value = data.username;
+                document.getElementById('editRealName').value = data.real_name;
+                document.getElementById('editEmail').value = data.email;
+                document.getElementById('editPhone').value = data.phone || '';
+                document.getElementById('editDepartment').value = data.department_id;
+                document.getElementById('editPosition').value = data.position || '';
+                document.getElementById('editRole').value = data.role;
+                document.getElementById('editStatus').value = data.status;
+                document.getElementById('editJoinDate').value = data.join_date;
+                document.getElementById('editEmployeeId').value = data.employee_id || '';
+                
+                // 显示模态框
+                const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                showToast('获取用户信息失败', 'danger');
+            });
+    }
+    
+    // 显示重置密码模态框
+    function showResetPasswordModal(userId) {
+        document.getElementById('resetUserId').value = userId;
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        document.getElementById('sendEmail').checked = true;
+        
+        // 显示模态框
+        const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+        modal.show();
+    }
+    
+    // 保存用户信息
+    function saveUser() {
+        const userId = document.getElementById('editUserId').value;
+        const formData = new FormData(document.getElementById('editUserForm'));
+        const userData = Object.fromEntries(formData.entries());
+        
+        axios.put(`/api/v1/users/${userId}`, userData)
+            .then(response => {
+                showToast('用户信息已更新', 'success');
+                
+                // 关闭模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                modal.hide();
+                
+                // 重新加载数据
+                loadUsers();
+                loadStatistics();
+            })
+            .catch(error => {
+                console.error('更新用户信息失败:', error);
+                showToast(error.response?.data?.detail || '更新失败', 'danger');
+            });
+    }
+    
+    // 重置密码
+    function resetPassword() {
+        const userId = document.getElementById('resetUserId').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const sendEmail = document.getElementById('sendEmail').checked;
+        
+        // 验证密码
+        if (newPassword !== confirmPassword) {
+            showToast('两次输入的密码不一致', 'danger');
+            return;
+        }
+        
+        if (newPassword.length < 8) {
+            showToast('密码长度至少8位', 'danger');
+            return;
+        }
+        
+        const data = {
+            new_password: newPassword,
+            send_email: sendEmail
+        };
+        
+        axios.post(`/api/v1/users/${userId}/reset-password`, data)
+            .then(response => {
+                showToast('密码已重置', 'success');
+                
+                // 关闭模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+                modal.hide();
+            })
+            .catch(error => {
+                console.error('重置密码失败:', error);
+                showToast(error.response?.data?.detail || '重置失败', 'danger');
+            });
+    }
+    
+    // 导出用户列表
+    function exportUsers() {
+        const params = new URLSearchParams();
+        
+        // 添加筛选条件
+        Object.keys(currentFilters).forEach(key => {
+            if (currentFilters[key]) {
+                params.append(key, currentFilters[key]);
+            }
+        });
+        
+        // 打开导出链接
+        window.open(`/api/v1/users/export?${params.toString()}`, '_blank');
+    }
+    
+    // 获取角色徽章样式
+    function getRoleBadgeClass(role) {
+        switch(role) {
+            case 'admin':
+                return 'bg-danger';
+            case 'hr':
+                return 'bg-warning';
+            case 'manager':
+                return 'bg-info';
+            case 'employee':
+                return 'bg-primary';
+            default:
+                return 'bg-secondary';
+        }
+    }
+    
+    // 获取角色文本
+    function getRoleText(role) {
+        switch(role) {
+            case 'admin':
+                return '管理员';
+            case 'hr':
+                return '人事';
+            case 'manager':
+                return '经理';
+            case 'employee':
+                return '员工';
+            default:
+                return '未知';
+        }
+    }
+    
+    // 获取状态徽章样式
+    function getStatusBadgeClass(status) {
+        switch(status) {
+            case 'active':
+                return 'bg-success';
+            case 'inactive':
+                return 'bg-danger';
+            case 'suspended':
+                return 'bg-warning';
+            default:
+                return 'bg-secondary';
+        }
+    }
+    
+    // 获取状态文本
+    function getStatusText(status) {
+        switch(status) {
+            case 'active':
+                return '在职';
+            case 'inactive':
+                return '离职';
+            case 'suspended':
+                return '停职';
+            default:
+                return '未知';
+        }
+    }
+});
+</script>
+{% endblock %}

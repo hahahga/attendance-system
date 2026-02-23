@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 考勤系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">首页</h1>
+        </div>
+    </div>
+</div>
+
+{% if current_user %}
+<div class="row">
+    <!-- 用户信息卡片 -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle"></i> 个人信息</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>用户名:</strong> {{ current_user.username }}</p>
+                <p><strong>姓名:</strong> {{ current_user.full_name or "未设置" }}</p>
+                <p><strong>部门:</strong> {{ current_user.department.name if current_user.department else "未分配" }}</p>
+                <p><strong>邮箱:</strong> {{ current_user.email or "未设置" }}</p>
+                <p><strong>角色:</strong> 
+                    {% if current_user.is_admin %}
+                    <span class="badge bg-danger">管理员</span>
+                    {% else %}
+                    <span class="badge bg-primary">普通用户</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="/profile" class="btn btn-sm btn-outline-primary">查看详情</a>
+                <a href="/change-password" class="btn btn-sm btn-outline-secondary">修改密码</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 今日考勤状态 -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> 今日考勤</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>日期:</strong> <span id="currentDate"></span></p>
+                <p><strong>状态:</strong> 
+                    <span id="attendanceStatus" class="badge bg-warning">未签到</span>
+                </p>
+                <p><strong>上班时间:</strong> <span id="checkInTime">--:--:--</span></p>
+                <p><strong>下班时间:</strong> <span id="checkOutTime">--:--:--</span></p>
+                <p><strong>工作时长:</strong> <span id="workHours">0小时0分钟</span></p>
+            </div>
+            <div class="card-footer">
+                <button id="checkInBtn" class="btn btn-success" onclick="checkIn()">
+                    <i class="bi bi-box-arrow-in-right"></i> 上班签到
+                </button>
+                <button id="checkOutBtn" class="btn btn-danger" onclick="checkOut()" disabled>
+                    <i class="bi bi-box-arrow-right"></i> 下班签退
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速操作 -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> 快速操作</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/attendance/history" class="btn btn-outline-primary">
+                        <i class="bi bi-clock-history"></i> 考勤记录
+                    </a>
+                    <a href="/leave/apply" class="btn btn-outline-secondary">
+                        <i class="bi bi-calendar-x"></i> 申请请假
+                    </a>
+                    <a href="/leave/history" class="btn btn-outline-info">
+                        <i class="bi bi-calendar-check"></i> 请假记录
+                    </a>
+                    {% if current_user.is_admin %}
+                    <a href="/statistics" class="btn btn-outline-warning">
+                        <i class="bi bi-bar-chart"></i> 统计报表
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近考勤记录 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> 最近考勤记录</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>上班时间</th>
+                                <th>下班时间</th>
+                                <th>工作时长</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentAttendanceTable">
+                            <!-- 数据将通过JavaScript动态填充 -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="/attendance/history" class="btn btn-sm btn-outline-primary">查看全部记录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近请假记录 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-x"></i> 最近请假记录</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>请假类型</th>
+                                <th>开始日期</th>
+                                <th>结束日期</th>
+                                <th>请假天数</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentLeaveTable">
+                            <!-- 数据将通过JavaScript动态填充 -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="/leave/history" class="btn btn-sm btn-outline-primary">查看全部记录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- 未登录用户显示的内容 -->
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">欢迎使用考勤系统</h5>
+                <p class="card-text">请登录以使用系统功能。</p>
+                <a href="/login" class="btn btn-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> 登录
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 配置axios以包含CSRF令牌
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+
+// 获取状态徽章样式
+function getStatusBadgeClass(status) {
+    switch(status) {
+        case '正常':
+            return 'bg-success';
+        case '迟到':
+            return 'bg-warning';
+        case '早退':
+            return 'bg-warning';
+        case '缺勤':
+            return 'bg-danger';
+        default:
+            return 'bg-secondary';
+    }
+}
+
+// 获取请假状态徽章样式
+function getLeaveStatusBadgeClass(status) {
+    switch(status) {
+        case '已批准':
+            return 'bg-success';
+        case '已拒绝':
+            return 'bg-danger';
+        case '待审批':
+            return 'bg-warning';
+        default:
+            return 'bg-secondary';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 设置当前日期
+    const today = new Date();
+    document.getElementById('currentDate').textContent = today.toLocaleDateString('zh-CN');
+    
+    // 加载考勤数据
+    loadTodayAttendance();
+    loadRecentAttendance();
+    loadRecentLeave();
+});
+
+// 加载今日考勤状态
+function loadTodayAttendance() {
+    axios.get('/api/today_attendance')
+        .then(response => {
+            const data = response.data;
+            
+            if (data) {
+                // 更新考勤状态
+                const statusElement = document.getElementById('attendanceStatus');
+                statusElement.textContent = data.status;
+                
+                // 根据状态设置徽章样式
+                statusElement.className = 'badge ';
+                switch(data.status) {
+                    case '正常':
+                        statusElement.className += 'bg-success';
+                        break;
+                    case '迟到':
+                        statusElement.className += 'bg-warning';
+                        break;
+                    case '早退':
+                        statusElement.className += 'bg-warning';
+                        break;
+                    case '缺勤':
+                        statusElement.className += 'bg-danger';
+                        break;
+                    default:
+                        statusElement.className += 'bg-secondary';
+                }
+                
+                // 更新时间
+                document.getElementById('checkInTime').textContent = data.check_in_time || '--:--:--';
+                document.getElementById('checkOutTime').textContent = data.check_out_time || '--:--:--';
+                document.getElementById('workHours').textContent = data.work_hours || '0小时0分钟';
+                
+                // 更新按钮状态
+                const checkInBtn = document.getElementById('checkInBtn');
+                const checkOutBtn = document.getElementById('checkOutBtn');
+                
+                if (data.check_in_time) {
+                    checkInBtn.disabled = true;
+                    checkOutBtn.disabled = !data.check_out_time;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('加载今日考勤状态失败:', error);
+            AttendanceSystem.showToast('加载考勤状态失败', 'danger');
+        });
+}
+
+// 加载最近考勤记录
+function loadRecentAttendance() {
+    axios.get('/api/recent_attendance')
+        .then(response => {
+            const data = response.data;
+            const tbody = document.getElementById('recentAttendanceTable');
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">暂无记录</td></tr>';
+                return;
+            }
+            
+            data.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.check_in_time || '--:--:--'}</td>
+                    <td>${record.check_out_time || '--:--:--'}</td>
+                    <td>${record.work_hours || '0小时0分钟'}</td>
+                    <td><span class="badge ${getStatusBadgeClass(record.status)}">${record.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('加载最近考勤记录失败:', error);
+        });
+}
+
+// 加载最近请假记录
+function loadRecentLeave() {
+    axios.get('/api/recent_leave')
+        .then(response => {
+            const data = response.data;
+            const tbody = document.getElementById('recentLeaveTable');
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">暂无记录</td></tr>';
+                return;
+            }
+            
+            data.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.leave_type}</td>
+                    <td>${record.start_date}</td>
+                    <td>${record.end_date}</td>
+                    <td>${record.days}天</td>
+                    <td><span class="badge ${getLeaveStatusBadgeClass(record.status)}">${record.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('加载最近请假记录失败:', error);
+        });
+}
+
+// 签到
+function checkIn() {
+    axios.post('/attendance/clock_in')
+        .then(response => {
+            AttendanceSystem.showToast('签到成功', 'success');
+            loadTodayAttendance();
+            loadRecentAttendance();
+        })
+        .catch(error => {
+            console.error('签到失败:', error);
+            AttendanceSystem.showToast(error.response?.data?.detail || '签到失败', 'danger');
+        });
+}
+
+// 签退
+function checkOut() {
+    axios.post('/attendance/clock_out')
+        .then(response => {
+            AttendanceSystem.showToast('签退成功', 'success');
+            loadTodayAttendance();
+            loadRecentAttendance();
+        })
+        .catch(error => {
+            console.error('签退失败:', error);
+            AttendanceSystem.showToast(error.response?.data?.detail || '签退失败', 'danger');
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,462 @@
+/* 人脸识别相关样式 */
+
+/* 人脸识别容器 */
+.face-recognition-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 视频和画布容器 */
+.face-video-container {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.face-video, .face-canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
+.face-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* 人脸框样式 */
+.face-box {
+    position: absolute;
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.face-box.detected {
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.face-box.processing {
+    border-color: #ffcc00;
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+}
+
+.face-box.verified {
+    border-color: #00cc00;
+    box-shadow: 0 0 15px rgba(0, 204, 0, 0.7);
+}
+
+.face-box.failed {
+    border-color: #ff3333;
+    box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+}
+
+/* 人脸特征点 */
+.face-landmark {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background-color: #00ff00;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* 控制按钮区域 */
+.face-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.face-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.face-btn i {
+    font-size: 1.1em;
+}
+
+.face-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 状态指示器 */
+.face-status {
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-weight: 500;
+}
+
+.face-status.idle {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.face-status.initializing {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.face-status.ready {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.face-status.detecting {
+    background-color: #cce5ff;
+    color: #004085;
+    border: 1px solid #b3d7ff;
+}
+
+.face-status.processing {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.face-status.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.face-status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* 人脸数据网格 */
+.face-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.face-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.face-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.face-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+.face-item-info {
+    padding: 10px;
+    background-color: #fff;
+    font-size: 0.9em;
+}
+
+.face-item-name {
+    font-weight: 500;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.face-item-date {
+    color: #6c757d;
+    font-size: 0.85em;
+}
+
+.face-item-actions {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.face-item:hover .face-item-actions {
+    opacity: 1;
+}
+
+.face-item-action {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.face-item-action:hover {
+    background-color: #fff;
+    transform: scale(1.1);
+}
+
+/* 人脸采集进度条 */
+.face-capture-progress {
+    width: 100%;
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 15px 0;
+}
+
+.face-capture-progress-bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* 人脸采集计数器 */
+.face-capture-counter {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+.face-capture-counter .current {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* 人脸识别提示 */
+.face-tips {
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    padding: 15px;
+    border-radius: 0 8px 8px 0;
+    margin: 20px 0;
+}
+
+.face-tips h5 {
+    margin-top: 0;
+    color: var(--primary-color);
+}
+
+.face-tips ul {
+    margin-bottom: 0;
+    padding-left: 20px;
+}
+
+/* 人脸识别设置面板 */
+.face-settings-panel {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.face-setting-item {
+    margin-bottom: 15px;
+}
+
+.face-setting-label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.face-setting-control {
+    width: 100%;
+}
+
+.face-setting-description {
+    font-size: 0.85em;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* 人脸识别历史记录 */
+.face-history {
+    margin-top: 20px;
+}
+
+.face-history-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.face-history-item:last-child {
+    border-bottom: none;
+}
+
+.face-history-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+}
+
+.face-history-info {
+    flex-grow: 1;
+}
+
+.face-history-name {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.face-history-time {
+    font-size: 0.85em;
+    color: #6c757d;
+}
+
+.face-history-result {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.face-history-result.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.face-history-result.failed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* 响应式调整 */
+@media (max-width: 767.98px) {
+    .face-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .face-btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    
+    .face-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+    }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+    .face-video-container {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    .face-status.idle {
+        background-color: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #444;
+    }
+    
+    .face-status.initializing {
+        background-color: #3d2f00;
+        color: #ffcc00;
+        border-color: #5a4200;
+    }
+    
+    .face-status.ready {
+        background-color: #003d47;
+        color: #00d4e6;
+        border-color: #005266;
+    }
+    
+    .face-status.detecting {
+        background-color: #001a33;
+        color: #3399ff;
+        border-color: #00264d;
+    }
+    
+    .face-status.processing {
+        background-color: #3d2f00;
+        color: #ffcc00;
+        border-color: #5a4200;
+    }
+    
+    .face-status.success {
+        background-color: #0a3622;
+        color: #00d68f;
+        border-color: #0d4f35;
+    }
+    
+    .face-status.error {
+        background-color: #3d0a0a;
+        color: #ff4d4d;
+        border-color: #5a0f0f;
+    }
+    
+    .face-item-info {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+    }
+    
+    .face-item-action {
+        background-color: rgba(30, 30, 30, 0.8);
+    }
+    
+    .face-item-action:hover {
+        background-color: #2d2d2d;
+    }
+    
+    .face-tips {
+        background-color: #2d2d2d;
+        color: #e0e0e0;
+    }
+    
+    .face-settings-panel {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+    }
+    
+    .face-history-item {
+        border-bottom-color: #444;
+    }
+}

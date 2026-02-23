@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}请假管理{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>请假管理</h2>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>请假统计</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>本年已用年假:</strong> <span id="yearly_leave">0天</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>剩余年假:</strong> <span id="remaining_leave">0天</span></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>本月请假:</strong> <span id="month_leave">0天</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>待审批:</strong> <span id="pending_leave">0个</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>快速操作</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ url_for('leave_apply') }}" class="btn btn-primary btn-block">申请请假</a>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ url_for('leave_history') }}" class="btn btn-info btn-block">请假记录</a>
+                        </div>
+                    </div>
+                    {% if current_user.is_admin or current_user.role == 'manager' or current_user.role == 'hr' %}
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ url_for('leave_approval') }}" class="btn btn-warning btn-block">审批请假</a>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <a href="{{ url_for('attendance') }}" class="btn btn-success btn-block">考勤管理</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>最近请假申请</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>申请日期</th>
+                                    <th>请假类型</th>
+                                    <th>开始日期</th>
+                                    <th>结束日期</th>
+                                    <th>天数</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent_leave">
+                                <!-- 动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>请假类型说明</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="alert alert-info">
+                                <strong>年假</strong>
+                                <p>每年可享受的带薪假期，具体天数根据公司规定和员工工龄确定。</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="alert alert-warning">
+                                <strong>病假</strong>
+                                <p>因疾病需要休息治疗而请的假期，需提供医院证明。</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="alert alert-success">
+                                <strong>事假</strong>
+                                <p>因个人事务需要处理的假期，通常为无薪假期。</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="alert alert-danger">
+                                <strong>其他</strong>
+                                <p>包括婚假、产假、丧假等特殊假期，需提供相关证明。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 页面加载时获取请假统计和最近请假记录
+    document.addEventListener('DOMContentLoaded', function() {
+        loadLeaveStatistics();
+        loadRecentLeave();
+    });
+    
+    // 加载请假统计
+    function loadLeaveStatistics() {
+        fetch('/api/leave_statistics')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('yearly_leave').textContent = data.yearly_leave || '0天';
+                document.getElementById('remaining_leave').textContent = data.remaining_leave || '0天';
+                document.getElementById('month_leave').textContent = data.month_leave || '0天';
+                document.getElementById('pending_leave').textContent = data.pending_leave || '0个';
+            })
+            .catch(error => {
+                console.error('Error loading leave statistics:', error);
+            });
+    }
+    
+    // 加载最近请假记录
+    function loadRecentLeave() {
+        fetch('/api/recent_leave')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('recent_leave');
+                tbody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="7" class="text-center">暂无请假记录</td>';
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                data.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${record.apply_date}</td>
+                        <td>${getLeaveTypeLabel(record.leave_type)}</td>
+                        <td>${record.start_date}</td>
+                        <td>${record.end_date}</td>
+                        <td>${record.days}天</td>
+                        <td>${getStatusBadge(record.status)}</td>
+                        <td>
+                            ${getActionButtons(record)}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading recent leave:', error);
+            });
+    }
+    
+    // 获取请假类型标签
+    function getLeaveTypeLabel(type) {
+        switch(type) {
+            case 'annual':
+                return '年假';
+            case 'sick':
+                return '病假';
+            case 'personal':
+                return '事假';
+            case 'maternity':
+                return '产假';
+            case 'marriage':
+                return '婚假';
+            case 'bereavement':
+                return '丧假';
+            default:
+                return '其他';
+        }
+    }
+    
+    // 获取状态徽章
+    function getStatusBadge(status) {
+        switch(status) {
+            case 'pending':
+                return '<span class="badge badge-warning">待审批</span>';
+            case 'approved':
+                return '<span class="badge badge-success">已批准</span>';
+            case 'rejected':
+                return '<span class="badge badge-danger">已拒绝</span>';
+            case 'cancelled':
+                return '<span class="badge badge-secondary">已取消</span>';
+            default:
+                return '<span class="badge badge-secondary">未知</span>';
+        }
+    }
+    
+    // 获取操作按钮
+    function getActionButtons(record) {
+        let buttons = '';
+        
+        // 查看详情按钮
+        buttons += `<a href="/leave/${record.id}" class="btn btn-sm btn-info">查看</a> `;
+        
+        // 如果是待审批状态，可以取消
+        if (record.status === 'pending') {
+            buttons += `<button class="btn btn-sm btn-danger" onclick="cancelLeave(${record.id})">取消</button> `;
+        }
+        
+        return buttons;
+    }
+    
+    // 取消请假申请
+    function cancelLeave(leaveId) {
+        if (confirm('确定要取消这个请假申请吗？')) {
+            fetch(`/api/leave/${leaveId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('请假申请已取消');
+                    loadLeaveStatistics();
+                    loadRecentLeave();
+                } else {
+                    alert(data.message || '取消失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error cancelling leave:', error);
+                alert('取消失败，请稍后再试');
+            });
+        }
+    }
+    
+    // 获取CSRF令牌
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+</script>
+{% endblock %}

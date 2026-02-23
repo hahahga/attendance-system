@@ -1,0 +1,651 @@
+{% extends "base.html" %}
+
+{% block title %}考勤管理{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>考勤管理</h2>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>员工考勤记录</h5>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <button class="btn btn-primary" data-toggle="modal" data-target="#addAttendanceModal">
+                                <i class="fas fa-plus"></i> 添加考勤记录
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="filter_form" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="employee_filter">员工</label>
+                                    <select id="employee_filter" class="form-control">
+                                        <option value="">全部员工</option>
+                                        <!-- 员工选项将通过JavaScript动态加载 -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="department_filter">部门</label>
+                                    <select id="department_filter" class="form-control">
+                                        <option value="">全部部门</option>
+                                        <!-- 部门选项将通过JavaScript动态加载 -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="status_filter">状态</label>
+                                    <select id="status_filter" class="form-control">
+                                        <option value="">全部状态</option>
+                                        <option value="present">出勤</option>
+                                        <option value="late">迟到</option>
+                                        <option value="early">早退</option>
+                                        <option value="absent">缺勤</option>
+                                        <option value="leave">请假</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="date_filter">日期</label>
+                                    <input type="date" id="date_filter" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="button" id="filter_btn" class="btn btn-info">
+                                    <i class="fas fa-filter"></i> 筛选
+                                </button>
+                                <button type="button" id="reset_btn" class="btn btn-secondary ml-2">
+                                    <i class="fas fa-undo"></i> 重置
+                                </button>
+                                <button type="button" id="export_btn" class="btn btn-success ml-2">
+                                    <i class="fas fa-download"></i> 导出
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="attendance_table">
+                            <thead>
+                                <tr>
+                                    <th>员工姓名</th>
+                                    <th>部门</th>
+                                    <th>日期</th>
+                                    <th>签到时间</th>
+                                    <th>签退时间</th>
+                                    <th>工作时长</th>
+                                    <th>状态</th>
+                                    <th>备注</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance_body">
+                                <!-- 数据将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页控件 -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center" id="pagination">
+                            <!-- 分页按钮将通过JavaScript动态生成 -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加考勤记录模态框 -->
+<div class="modal fade" id="addAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="addAttendanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAttendanceModalLabel">添加考勤记录</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="add_attendance_form">
+                    <div class="form-group">
+                        <label for="add_employee">员工</label>
+                        <select id="add_employee" class="form-control" required>
+                            <!-- 员工选项将通过JavaScript动态加载 -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add_date">日期</label>
+                        <input type="date" id="add_date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="add_clock_in">签到时间</label>
+                        <input type="time" id="add_clock_in" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="add_clock_out">签退时间</label>
+                        <input type="time" id="add_clock_out" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="add_status">状态</label>
+                        <select id="add_status" class="form-control" required>
+                            <option value="present">出勤</option>
+                            <option value="late">迟到</option>
+                            <option value="early">早退</option>
+                            <option value="absent">缺勤</option>
+                            <option value="leave">请假</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add_note">备注</label>
+                        <textarea id="add_note" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" id="save_attendance_btn" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑考勤记录模态框 -->
+<div class="modal fade" id="editAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="editAttendanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAttendanceModalLabel">编辑考勤记录</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="edit_attendance_form">
+                    <input type="hidden" id="edit_id">
+                    <div class="form-group">
+                        <label for="edit_employee">员工</label>
+                        <select id="edit_employee" class="form-control" required>
+                            <!-- 员工选项将通过JavaScript动态加载 -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_date">日期</label>
+                        <input type="date" id="edit_date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_clock_in">签到时间</label>
+                        <input type="time" id="edit_clock_in" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_clock_out">签退时间</label>
+                        <input type="time" id="edit_clock_out" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_status">状态</label>
+                        <select id="edit_status" class="form-control" required>
+                            <option value="present">出勤</option>
+                            <option value="late">迟到</option>
+                            <option value="early">早退</option>
+                            <option value="absent">缺勤</option>
+                            <option value="leave">请假</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_note">备注</label>
+                        <textarea id="edit_note" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" id="update_attendance_btn" class="btn btn-primary">更新</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-present {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-late {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-early {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-absent {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-leave {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+</style>
+
+<script>
+    let currentPage = 1;
+    let totalPages = 1;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        loadEmployees();
+        loadDepartments();
+        loadAttendanceRecords();
+        
+        // 绑定筛选按钮
+        document.getElementById('filter_btn').addEventListener('click', function() {
+            currentPage = 1;
+            loadAttendanceRecords();
+        });
+        
+        // 绑定重置按钮
+        document.getElementById('reset_btn').addEventListener('click', function() {
+            document.getElementById('filter_form').reset();
+            currentPage = 1;
+            loadAttendanceRecords();
+        });
+        
+        // 绑定导出按钮
+        document.getElementById('export_btn').addEventListener('click', function() {
+            exportAttendanceRecords();
+        });
+        
+        // 绑定保存考勤记录按钮
+        document.getElementById('save_attendance_btn').addEventListener('click', function() {
+            saveAttendanceRecord();
+        });
+        
+        // 绑定更新考勤记录按钮
+        document.getElementById('update_attendance_btn').addEventListener('click', function() {
+            updateAttendanceRecord();
+        });
+    });
+    
+    function loadEmployees() {
+        fetch('/api/employees')
+            .then(response => response.json())
+            .then(data => {
+                const employeeFilter = document.getElementById('employee_filter');
+                const addEmployee = document.getElementById('add_employee');
+                const editEmployee = document.getElementById('edit_employee');
+                
+                // 清空现有选项
+                employeeFilter.innerHTML = '<option value="">全部员工</option>';
+                addEmployee.innerHTML = '';
+                editEmployee.innerHTML = '';
+                
+                data.forEach(employee => {
+                    // 添加到筛选器
+                    const filterOption = document.createElement('option');
+                    filterOption.value = employee.id;
+                    filterOption.textContent = employee.name;
+                    employeeFilter.appendChild(filterOption);
+                    
+                    // 添加到添加表单
+                    const addOption = document.createElement('option');
+                    addOption.value = employee.id;
+                    addOption.textContent = employee.name;
+                    addEmployee.appendChild(addOption);
+                    
+                    // 添加到编辑表单
+                    const editOption = document.createElement('option');
+                    editOption.value = employee.id;
+                    editOption.textContent = employee.name;
+                    editEmployee.appendChild(editOption);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading employees:', error);
+            });
+    }
+    
+    function loadDepartments() {
+        fetch('/api/departments')
+            .then(response => response.json())
+            .then(data => {
+                const departmentFilter = document.getElementById('department_filter');
+                
+                // 清空现有选项
+                departmentFilter.innerHTML = '<option value="">全部部门</option>';
+                
+                data.forEach(department => {
+                    const option = document.createElement('option');
+                    option.value = department.id;
+                    option.textContent = department.name;
+                    departmentFilter.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading departments:', error);
+            });
+    }
+    
+    function loadAttendanceRecords() {
+        const employeeId = document.getElementById('employee_filter').value;
+        const departmentId = document.getElementById('department_filter').value;
+        const status = document.getElementById('status_filter').value;
+        const date = document.getElementById('date_filter').value;
+        
+        let url = `/api/admin_attendance?page=${currentPage}`;
+        if (employeeId) url += `&employee_id=${employeeId}`;
+        if (departmentId) url += `&department_id=${departmentId}`;
+        if (status) url += `&status=${status}`;
+        if (date) url += `&date=${date}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('attendance_body');
+                tbody.innerHTML = '';
+                
+                data.records.forEach(record => {
+                    const row = document.createElement('tr');
+                    
+                    let statusClass = '';
+                    let statusText = '';
+                    
+                    switch(record.status) {
+                        case 'present':
+                            statusClass = 'status-present';
+                            statusText = '出勤';
+                            break;
+                        case 'late':
+                            statusClass = 'status-late';
+                            statusText = '迟到';
+                            break;
+                        case 'early':
+                            statusClass = 'status-early';
+                            statusText = '早退';
+                            break;
+                        case 'absent':
+                            statusClass = 'status-absent';
+                            statusText = '缺勤';
+                            break;
+                        case 'leave':
+                            statusClass = 'status-leave';
+                            statusText = '请假';
+                            break;
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${record.employee_name}</td>
+                        <td>${record.department_name}</td>
+                        <td>${record.date}</td>
+                        <td>${record.clock_in_time || '-'}</td>
+                        <td>${record.clock_out_time || '-'}</td>
+                        <td>${record.work_hours || '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${record.note || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="editAttendanceRecord('${record.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteAttendanceRecord('${record.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+                
+                // 更新分页信息
+                totalPages = data.total_pages;
+                updatePagination();
+            })
+            .catch(error => {
+                console.error('Error loading attendance records:', error);
+                showNotification('加载考勤记录失败', 'danger');
+            });
+    }
+    
+    function updatePagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        
+        // 上一页
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">上一页</a>`;
+        pagination.appendChild(prevLi);
+        
+        // 页码
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+            pagination.appendChild(li);
+        }
+        
+        // 下一页
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">下一页</a>`;
+        pagination.appendChild(nextLi);
+    }
+    
+    function changePage(page) {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        loadAttendanceRecords();
+    }
+    
+    function saveAttendanceRecord() {
+        const employeeId = document.getElementById('add_employee').value;
+        const date = document.getElementById('add_date').value;
+        const clockIn = document.getElementById('add_clock_in').value;
+        const clockOut = document.getElementById('add_clock_out').value;
+        const status = document.getElementById('add_status').value;
+        const note = document.getElementById('add_note').value;
+        
+        if (!employeeId || !date || !status) {
+            showNotification('请填写必要信息', 'warning');
+            return;
+        }
+        
+        const data = {
+            employee_id: employeeId,
+            date: date,
+            clock_in_time: clockIn,
+            clock_out_time: clockOut,
+            status: status,
+            note: note
+        };
+        
+        fetch('/api/admin_attendance', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#addAttendanceModal').modal('hide');
+                document.getElementById('add_attendance_form').reset();
+                loadAttendanceRecords();
+                showNotification('考勤记录添加成功', 'success');
+            } else {
+                showNotification(data.message || '添加考勤记录失败', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving attendance record:', error);
+            showNotification('添加考勤记录失败', 'danger');
+        });
+    }
+    
+    function editAttendanceRecord(id) {
+        fetch(`/api/admin_attendance/${id}`)
+            .then(response => response.json())
+            .then(record => {
+                document.getElementById('edit_id').value = record.id;
+                document.getElementById('edit_employee').value = record.employee_id;
+                document.getElementById('edit_date').value = record.date;
+                document.getElementById('edit_clock_in').value = record.clock_in_time || '';
+                document.getElementById('edit_clock_out').value = record.clock_out_time || '';
+                document.getElementById('edit_status').value = record.status;
+                document.getElementById('edit_note').value = record.note || '';
+                
+                $('#editAttendanceModal').modal('show');
+            })
+            .catch(error => {
+                console.error('Error loading attendance record:', error);
+                showNotification('加载考勤记录失败', 'danger');
+            });
+    }
+    
+    function updateAttendanceRecord() {
+        const id = document.getElementById('edit_id').value;
+        const employeeId = document.getElementById('edit_employee').value;
+        const date = document.getElementById('edit_date').value;
+        const clockIn = document.getElementById('edit_clock_in').value;
+        const clockOut = document.getElementById('edit_clock_out').value;
+        const status = document.getElementById('edit_status').value;
+        const note = document.getElementById('edit_note').value;
+        
+        if (!id || !employeeId || !date || !status) {
+            showNotification('请填写必要信息', 'warning');
+            return;
+        }
+        
+        const data = {
+            employee_id: employeeId,
+            date: date,
+            clock_in_time: clockIn,
+            clock_out_time: clockOut,
+            status: status,
+            note: note
+        };
+        
+        fetch(`/api/admin_attendance/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#editAttendanceModal').modal('hide');
+                loadAttendanceRecords();
+                showNotification('考勤记录更新成功', 'success');
+            } else {
+                showNotification(data.message || '更新考勤记录失败', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating attendance record:', error);
+            showNotification('更新考勤记录失败', 'danger');
+        });
+    }
+    
+    function deleteAttendanceRecord(id) {
+        if (!confirm('确定要删除这条考勤记录吗？')) {
+            return;
+        }
+        
+        fetch(`/api/admin_attendance/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadAttendanceRecords();
+                showNotification('考勤记录删除成功', 'success');
+            } else {
+                showNotification(data.message || '删除考勤记录失败', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting attendance record:', error);
+            showNotification('删除考勤记录失败', 'danger');
+        });
+    }
+    
+    function exportAttendanceRecords() {
+        const employeeId = document.getElementById('employee_filter').value;
+        const departmentId = document.getElementById('department_filter').value;
+        const status = document.getElementById('status_filter').value;
+        const date = document.getElementById('date_filter').value;
+        
+        let url = `/api/export_attendance?`;
+        if (employeeId) url += `employee_id=${employeeId}&`;
+        if (departmentId) url += `department_id=${departmentId}&`;
+        if (status) url += `status=${status}&`;
+        if (date) url += `date=${date}&`;
+        
+        window.open(url, '_blank');
+    }
+    
+    function getCsrfToken() {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith('csrf_token=')) {
+                return cookie.substring('csrf_token='.length);
+            }
+        }
+        return '';
+    }
+    
+    function showNotification(message, type) {
+        // 创建通知元素
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.top = '20px';
+        notification.style.right = '20px';
+        notification.style.zIndex = '9999';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 3秒后自动关闭
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+</script>
+{% endblock %}

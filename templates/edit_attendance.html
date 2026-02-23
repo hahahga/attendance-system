@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}编辑考勤记录{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>编辑考勤记录</h2>
+    
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5>考勤记录信息</h5>
+                </div>
+                <div class="card-body">
+                    <form id="edit_attendance_form">
+                        <input type="hidden" id="attendance_id" value="{{ attendance.id }}">
+                        
+                        <div class="form-group">
+                            <label for="employee_name">员工姓名</label>
+                            <input type="text" id="employee_name" class="form-control" value="{{ attendance.employee_name }}" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="department_name">部门</label>
+                            <input type="text" id="department_name" class="form-control" value="{{ attendance.department_name }}" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="attendance_date">日期</label>
+                            <input type="date" id="attendance_date" class="form-control" value="{{ attendance.date }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clock_in_time">签到时间</label>
+                            <input type="time" id="clock_in_time" class="form-control" value="{{ attendance.clock_in_time }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clock_out_time">签退时间</label>
+                            <input type="time" id="clock_out_time" class="form-control" value="{{ attendance.clock_out_time }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="attendance_status">状态</label>
+                            <select id="attendance_status" class="form-control" required>
+                                <option value="present" {% if attendance.status == 'present' %}selected{% endif %}>出勤</option>
+                                <option value="late" {% if attendance.status == 'late' %}selected{% endif %}>迟到</option>
+                                <option value="early" {% if attendance.status == 'early' %}selected{% endif %}>早退</option>
+                                <option value="absent" {% if attendance.status == 'absent' %}selected{% endif %}>缺勤</option>
+                                <option value="leave" {% if attendance.status == 'leave' %}selected{% endif %}>请假</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="work_hours">工作时长（小时）</label>
+                            <input type="number" id="work_hours" class="form-control" value="{{ attendance.work_hours }}" step="0.1" min="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="attendance_note">备注</label>
+                            <textarea id="attendance_note" class="form-control" rows="3">{{ attendance.note or '' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="send_notification">
+                                <label class="form-check-label" for="send_notification">
+                                    发送通知给员工
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 保存更改
+                            </button>
+                            <a href="/admin/attendance" class="btn btn-secondary ml-2">
+                                <i class="fas fa-times"></i> 取消
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.btn {
+    padding: 8px 16px;
+}
+
+.form-control {
+    padding: 8px 12px;
+}
+
+label {
+    font-weight: 500;
+}
+
+.text-center {
+    text-align: center;
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 绑定表单提交事件
+        document.getElementById('edit_attendance_form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateAttendanceRecord();
+        });
+        
+        // 监听签到和签退时间变化，自动计算工作时长
+        document.getElementById('clock_in_time').addEventListener('change', calculateWorkHours);
+        document.getElementById('clock_out_time').addEventListener('change', calculateWorkHours);
+    });
+    
+    function calculateWorkHours() {
+        const clockIn = document.getElementById('clock_in_time').value;
+        const clockOut = document.getElementById('clock_out_time').value;
+        
+        if (clockIn && clockOut) {
+            // 解析时间
+            const [inHour, inMinute] = clockIn.split(':').map(Number);
+            const [outHour, outMinute] = clockOut.split(':').map(Number);
+            
+            // 计算分钟差
+            const inMinutes = inHour * 60 + inMinute;
+            const outMinutes = outHour * 60 + outMinute;
+            
+            if (outMinutes > inMinutes) {
+                const workMinutes = outMinutes - inMinutes;
+                const workHours = (workMinutes / 60).toFixed(1);
+                document.getElementById('work_hours').value = workHours;
+            } else {
+                // 如果签退时间早于签到时间，可能是跨天情况
+                const nextDayMinutes = 24 * 60 + outMinutes;
+                const workMinutes = nextDayMinutes - inMinutes;
+                const workHours = (workMinutes / 60).toFixed(1);
+                document.getElementById('work_hours').value = workHours;
+            }
+        }
+    }
+    
+    function updateAttendanceRecord() {
+        const attendanceId = document.getElementById('attendance_id').value;
+        const date = document.getElementById('attendance_date').value;
+        const clockIn = document.getElementById('clock_in_time').value;
+        const clockOut = document.getElementById('clock_out_time').value;
+        const status = document.getElementById('attendance_status').value;
+        const workHours = document.getElementById('work_hours').value;
+        const note = document.getElementById('attendance_note').value;
+        const sendNotification = document.getElementById('send_notification').checked;
+        
+        if (!date || !status) {
+            showNotification('请填写必要信息', 'warning');
+            return;
+        }
+        
+        const data = {
+            date: date,
+            clock_in_time: clockIn,
+            clock_out_time: clockOut,
+            status: status,
+            work_hours: workHours,
+            note: note,
+            send_notification: sendNotification
+        };
+        
+        fetch(`/api/admin_attendance/${attendanceId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('考勤记录更新成功', 'success');
+                setTimeout(() => {
+                    window.location.href = '/admin/attendance';
+                }, 1500);
+            } else {
+                showNotification(data.message || '更新考勤记录失败', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating attendance record:', error);
+            showNotification('更新考勤记录失败', 'danger');
+        });
+    }
+    
+    function getCsrfToken() {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith('csrf_token=')) {
+                return cookie.substring('csrf_token='.length);
+            }
+        }
+        return '';
+    }
+    
+    function showNotification(message, type) {
+        // 创建通知元素
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.top = '20px';
+        notification.style.right = '20px';
+        notification.style.zIndex = '9999';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 3秒后自动关闭
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+</script>
+{% endblock %}

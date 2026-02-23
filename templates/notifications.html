@@ -1,0 +1,562 @@
+{% extends "base.html" %}
+
+{% block title %}通知中心 - 考勤系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">通知中心</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="markAllReadBtn">
+                        <i class="bi bi-check-all"></i> 全部标记已读
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="clearAllBtn">
+                        <i class="bi bi-trash"></i> 清空通知
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 通知分类标签页 -->
+    <div class="col-12 mb-4">
+        <ul class="nav nav-tabs" id="notificationTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">
+                    全部通知 <span class="badge bg-danger ms-1" id="allCount">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="unread-tab" data-bs-toggle="tab" data-bs-target="#unread" type="button" role="tab" aria-controls="unread" aria-selected="false">
+                    未读通知 <span class="badge bg-danger ms-1" id="unreadCount">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" type="button" role="tab" aria-controls="system" aria-selected="false">
+                    系统通知 <span class="badge bg-danger ms-1" id="systemCount">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab" aria-controls="attendance" aria-selected="false">
+                    考勤通知 <span class="badge bg-danger ms-1" id="attendanceCount">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="leave-tab" data-bs-toggle="tab" data-bs-target="#leave" type="button" role="tab" aria-controls="leave" aria-selected="false">
+                    请假通知 <span class="badge bg-danger ms-1" id="leaveCount">0</span>
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="tab-content" id="notificationTabContent">
+    <!-- 全部通知 -->
+    <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="notification-list" id="allNotifications">
+                            <!-- 通知列表将通过JavaScript填充 -->
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <nav aria-label="通知分页">
+                            <ul class="pagination justify-content-center" id="allPagination">
+                                <!-- 分页按钮将通过JavaScript生成 -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 未读通知 -->
+    <div class="tab-pane fade" id="unread" role="tabpanel" aria-labelledby="unread-tab">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="notification-list" id="unreadNotifications">
+                            <!-- 通知列表将通过JavaScript填充 -->
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <nav aria-label="未读通知分页">
+                            <ul class="pagination justify-content-center" id="unreadPagination">
+                                <!-- 分页按钮将通过JavaScript生成 -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 系统通知 -->
+    <div class="tab-pane fade" id="system" role="tabpanel" aria-labelledby="system-tab">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="notification-list" id="systemNotifications">
+                            <!-- 通知列表将通过JavaScript填充 -->
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <nav aria-label="系统通知分页">
+                            <ul class="pagination justify-content-center" id="systemPagination">
+                                <!-- 分页按钮将通过JavaScript生成 -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 考勤通知 -->
+    <div class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="notification-list" id="attendanceNotifications">
+                            <!-- 通知列表将通过JavaScript填充 -->
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <nav aria-label="考勤通知分页">
+                            <ul class="pagination justify-content-center" id="attendancePagination">
+                                <!-- 分页按钮将通过JavaScript生成 -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 请假通知 -->
+    <div class="tab-pane fade" id="leave" role="tabpanel" aria-labelledby="leave-tab">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="notification-list" id="leaveNotifications">
+                            <!-- 通知列表将通过JavaScript填充 -->
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <nav aria-label="请假通知分页">
+                            <ul class="pagination justify-content-center" id="leavePagination">
+                                <!-- 分页按钮将通过JavaScript生成 -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 通知详情模态框 -->
+<div class="modal fade" id="notificationDetailModal" tabindex="-1" aria-labelledby="notificationDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationDetailModalLabel">通知详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 id="detailTitle" class="mb-0"></h6>
+                        <span id="detailType" class="badge"></span>
+                    </div>
+                    <div class="text-muted small mb-3">
+                        <span id="detailTime"></span> · <span id="detailSender"></span>
+                    </div>
+                </div>
+                <div id="detailContent" class="notification-content">
+                    <!-- 通知内容将在这里显示 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="markReadBtn">标记已读</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化变量
+    let currentTab = 'all';
+    let currentPage = {
+        'all': 1,
+        'unread': 1,
+        'system': 1,
+        'attendance': 1,
+        'leave': 1
+    };
+    let currentNotificationId = null;
+    
+    // 初始化页面
+    initPage();
+    
+    // 绑定事件
+    bindEvents();
+    
+    // 初始化页面
+    function initPage() {
+        loadNotificationCounts();
+        loadNotifications('all');
+    }
+    
+    // 绑定事件
+    function bindEvents() {
+        // 标签页切换事件
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                const target = e.target.getAttribute('data-bs-target');
+                currentTab = target.substring(1); // 去掉#号
+                loadNotifications(currentTab);
+            });
+        });
+        
+        // 全部标记已读
+        document.getElementById('markAllReadBtn').addEventListener('click', function() {
+            markAllNotificationsRead();
+        });
+        
+        // 清空通知
+        document.getElementById('clearAllBtn').addEventListener('click', function() {
+            if (confirm('确定要清空所有通知吗？此操作不可恢复！')) {
+                clearAllNotifications();
+            }
+        });
+        
+        // 标记单个通知已读
+        document.getElementById('markReadBtn').addEventListener('click', function() {
+            if (currentNotificationId) {
+                markNotificationRead(currentNotificationId);
+            }
+        });
+    }
+    
+    // 加载通知计数
+    function loadNotificationCounts() {
+        axios.get('/api/v1/notifications/counts')
+            .then(response => {
+                const counts = response.data;
+                
+                document.getElementById('allCount').textContent = counts.all || 0;
+                document.getElementById('unreadCount').textContent = counts.unread || 0;
+                document.getElementById('systemCount').textContent = counts.system || 0;
+                document.getElementById('attendanceCount').textContent = counts.attendance || 0;
+                document.getElementById('leaveCount').textContent = counts.leave || 0;
+            })
+            .catch(error => {
+                console.error('加载通知计数失败:', error);
+            });
+    }
+    
+    // 加载通知列表
+    function loadNotifications(type) {
+        const page = currentPage[type];
+        let url = `/api/v1/notifications?type=${type}&page=${page}`;
+        
+        axios.get(url)
+            .then(response => {
+                const data = response.data;
+                const container = document.getElementById(`${type}Notifications`);
+                
+                container.innerHTML = '';
+                
+                if (data.items.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-5">
+                            <i class="bi bi-bell-slash" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="mt-3 text-muted">暂无通知</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                data.items.forEach(item => {
+                    const notificationEl = createNotificationElement(item);
+                    container.appendChild(notificationEl);
+                });
+                
+                // 更新分页
+                updatePagination(type, data.total_pages, data.current_page);
+            })
+            .catch(error => {
+                console.error('加载通知列表失败:', error);
+                const container = document.getElementById(`${type}Notifications`);
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        加载通知失败: ${error.response?.data?.detail || '未知错误'}
+                    </div>
+                `;
+            });
+    }
+    
+    // 创建通知元素
+    function createNotificationElement(notification) {
+        const div = document.createElement('div');
+        
+        // 设置样式类
+        let itemClass = 'notification-item';
+        if (!notification.is_read) {
+            itemClass += ' unread';
+        }
+        
+        // 获取类型样式
+        let typeClass = '';
+        let typeText = '';
+        
+        switch (notification.type) {
+            case 'system':
+                typeClass = 'bg-info';
+                typeText = '系统';
+                break;
+            case 'attendance':
+                typeClass = 'bg-success';
+                typeText = '考勤';
+                break;
+            case 'leave':
+                typeClass = 'bg-warning';
+                typeText = '请假';
+                break;
+            default:
+                typeClass = 'bg-secondary';
+                typeText = '其他';
+        }
+        
+        div.className = itemClass;
+        div.innerHTML = `
+            <div class="card mb-3 ${!notification.is_read ? 'border-primary' : ''}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="card-title mb-0 ${!notification.is_read ? 'fw-bold' : ''}">${notification.title}</h6>
+                                <span class="badge ${typeClass}">${typeText}</span>
+                            </div>
+                            <p class="card-text text-muted small mb-2">${notification.content.substring(0, 100)}${notification.content.length > 100 ? '...' : ''}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">${notification.created_at}</small>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary view-notification-btn" data-id="${notification.id}">
+                                        查看
+                                    </button>
+                                    ${!notification.is_read ? `<button type="button" class="btn btn-sm btn-outline-success mark-read-btn ms-1" data-id="${notification.id}">标记已读</button>` : ''}
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-notification-btn ms-1" data-id="${notification.id}">
+                                        删除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 绑定事件
+        div.querySelector('.view-notification-btn').addEventListener('click', function() {
+            viewNotificationDetail(this.getAttribute('data-id'));
+        });
+        
+        if (div.querySelector('.mark-read-btn')) {
+            div.querySelector('.mark-read-btn').addEventListener('click', function() {
+                markNotificationRead(this.getAttribute('data-id'));
+            });
+        }
+        
+        div.querySelector('.delete-notification-btn').addEventListener('click', function() {
+            if (confirm('确定要删除这个通知吗？')) {
+                deleteNotification(this.getAttribute('data-id'));
+            }
+        });
+        
+        return div;
+    }
+    
+    // 更新分页
+    function updatePagination(type, totalPages, currentPage) {
+        const pagination = document.getElementById(`${type}Pagination`);
+        pagination.innerHTML = '';
+        
+        // 上一页
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" data-type="${type}" data-page="${currentPage - 1}">上一页</a>`;
+        pagination.appendChild(prevLi);
+        
+        // 页码
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" data-type="${type}" data-page="${i}">${i}</a>`;
+            pagination.appendChild(li);
+        }
+        
+        // 下一页
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" data-type="${type}" data-page="${currentPage + 1}">下一页</a>`;
+        pagination.appendChild(nextLi);
+        
+        // 绑定分页点击事件
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const type = this.getAttribute('data-type');
+                const page = parseInt(this.getAttribute('data-page'));
+                
+                if (page > 0 && page <= totalPages) {
+                    currentPage[type] = page;
+                    loadNotifications(type);
+                }
+            });
+        });
+    }
+    
+    // 查看通知详情
+    function viewNotificationDetail(notificationId) {
+        axios.get(`/api/v1/notifications/detail/${notificationId}`)
+            .then(response => {
+                const notification = response.data;
+                
+                // 填充详情数据
+                document.getElementById('detailTitle').textContent = notification.title;
+                document.getElementById('detailTime').textContent = notification.created_at;
+                document.getElementById('detailSender').textContent = notification.sender || '系统';
+                document.getElementById('detailContent').innerHTML = notification.content;
+                
+                // 设置类型标签
+                const typeEl = document.getElementById('detailType');
+                typeEl.className = 'badge';
+                
+                switch (notification.type) {
+                    case 'system':
+                        typeEl.classList.add('bg-info');
+                        typeEl.textContent = '系统';
+                        break;
+                    case 'attendance':
+                        typeEl.classList.add('bg-success');
+                        typeEl.textContent = '考勤';
+                        break;
+                    case 'leave':
+                        typeEl.classList.add('bg-warning');
+                        typeEl.textContent = '请假';
+                        break;
+                    default:
+                        typeEl.classList.add('bg-secondary');
+                        typeEl.textContent = '其他';
+                }
+                
+                // 设置标记已读按钮状态
+                const markReadBtn = document.getElementById('markReadBtn');
+                if (notification.is_read) {
+                    markReadBtn.disabled = true;
+                    markReadBtn.textContent = '已读';
+                } else {
+                    markReadBtn.disabled = false;
+                    markReadBtn.textContent = '标记已读';
+                }
+                
+                // 保存当前通知ID
+                currentNotificationId = notificationId;
+                
+                // 显示模态框
+                const modal = new bootstrap.Modal(document.getElementById('notificationDetailModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('加载通知详情失败:', error);
+                showToast('加载通知详情失败', 'danger');
+            });
+    }
+    
+    // 标记通知已读
+    function markNotificationRead(notificationId) {
+        axios.post(`/api/v1/notifications/mark-read/${notificationId}`)
+            .then(response => {
+                showToast('通知已标记为已读', 'success');
+                
+                // 关闭模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('notificationDetailModal'));
+                if (modal) modal.hide();
+                
+                // 刷新列表
+                loadNotifications(currentTab);
+                loadNotificationCounts();
+            })
+            .catch(error => {
+                console.error('标记通知已读失败:', error);
+                showToast(error.response?.data?.detail || '标记失败', 'danger');
+            });
+    }
+    
+    // 删除通知
+    function deleteNotification(notificationId) {
+        axios.delete(`/api/v1/notifications/delete/${notificationId}`)
+            .then(response => {
+                showToast('通知删除成功', 'success');
+                
+                // 刷新列表
+                loadNotifications(currentTab);
+                loadNotificationCounts();
+            })
+            .catch(error => {
+                console.error('删除通知失败:', error);
+                showToast(error.response?.data?.detail || '删除失败', 'danger');
+            });
+    }
+    
+    // 标记所有通知已读
+    function markAllNotificationsRead() {
+        axios.post('/api/v1/notifications/mark-all-read')
+            .then(response => {
+                showToast('所有通知已标记为已读', 'success');
+                
+                // 刷新列表
+                loadNotifications(currentTab);
+                loadNotificationCounts();
+            })
+            .catch(error => {
+                console.error('标记所有通知已读失败:', error);
+                showToast(error.response?.data?.detail || '操作失败', 'danger');
+            });
+    }
+    
+    // 清空所有通知
+    function clearAllNotifications() {
+        axios.delete('/api/v1/notifications/clear-all')
+            .then(response => {
+                showToast('所有通知已清空', 'success');
+                
+                // 刷新列表
+                loadNotifications(currentTab);
+                loadNotificationCounts();
+            })
+            .catch(error => {
+                console.error('清空通知失败:', error);
+                showToast(error.response?.data?.detail || '操作失败', 'danger');
+            });
+    }
+});
+</script>
+{% endblock %}

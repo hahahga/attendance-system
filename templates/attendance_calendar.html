@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block title %}考勤日历{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>考勤日历</h2>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>考勤日历</h5>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <div class="btn-group">
+                                <button id="prev_month" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button id="current_month" class="btn btn-sm btn-outline-primary">
+                                    本月
+                                </button>
+                                <button id="next_month" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="calendar" class="calendar-container">
+                        <!-- 日历将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>图例</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="calendar-legend present mr-2"></div>
+                                <span>出勤</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="calendar-legend late mr-2"></div>
+                                <span>迟到</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="calendar-legend early mr-2"></div>
+                                <span>早退</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="calendar-legend absent mr-2"></div>
+                                <span>缺勤</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="calendar-legend leave mr-2"></div>
+                                <span>请假</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="calendar-legend weekend mr-2"></div>
+                                <span>周末</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>统计信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>本月出勤:</strong> <span id="month_present">0</span>天</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>本月迟到:</strong> <span id="month_late">0</span>天</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>本月早退:</strong> <span id="month_early">0</span>天</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>本月请假:</strong> <span id="month_leave">0</span>天</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.calendar {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.calendar th, .calendar td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    min-width: 40px;
+    height: 60px;
+    vertical-align: top;
+}
+
+.calendar th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.calendar .weekend {
+    background-color: #f9f9f9;
+}
+
+.calendar .today {
+    background-color: #e6f7ff;
+    border: 2px solid #1890ff;
+}
+
+.calendar .present {
+    background-color: #f6ffed;
+}
+
+.calendar .late {
+    background-color: #fffbe6;
+}
+
+.calendar .early {
+    background-color: #fffbe6;
+}
+
+.calendar .absent {
+    background-color: #fff2f0;
+}
+
+.calendar .leave {
+    background-color: #e6f7ff;
+}
+
+.calendar-legend {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.calendar-legend.present {
+    background-color: #f6ffed;
+}
+
+.calendar-legend.late {
+    background-color: #fffbe6;
+}
+
+.calendar-legend.early {
+    background-color: #fffbe6;
+}
+
+.calendar-legend.absent {
+    background-color: #fff2f0;
+}
+
+.calendar-legend.leave {
+    background-color: #e6f7ff;
+}
+
+.calendar-legend.weekend {
+    background-color: #f9f9f9;
+}
+
+.attendance-info {
+    font-size: 10px;
+    color: #666;
+}
+
+.attendance-status {
+    font-size: 10px;
+    padding: 2px 4px;
+    border-radius: 2px;
+    margin-top: 2px;
+}
+</style>
+
+<script>
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth(); // 0-11
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        renderCalendar(currentYear, currentMonth);
+        loadMonthStatistics(currentYear, currentMonth);
+        
+        // 绑定按钮事件
+        document.getElementById('prev_month').addEventListener('click', function() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar(currentYear, currentMonth);
+            loadMonthStatistics(currentYear, currentMonth);
+        });
+        
+        document.getElementById('next_month').addEventListener('click', function() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar(currentYear, currentMonth);
+            loadMonthStatistics(currentYear, currentMonth);
+        });
+        
+        document.getElementById('current_month').addEventListener('click', function() {
+            const today = new Date();
+            currentYear = today.getFullYear();
+            currentMonth = today.getMonth();
+            renderCalendar(currentYear, currentMonth);
+            loadMonthStatistics(currentYear, currentMonth);
+        });
+    });
+    
+    function renderCalendar(year, month) {
+        const firstDay = new Date(year, month, 1).getDay(); // 0-6, 0是周日
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
+        
+        let html = '<table class="calendar">';
+        html += '<thead><tr>';
+        html += '<th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th>';
+        html += '</tr></thead><tbody>';
+        
+        let date = 1;
+        for (let i = 0; i < 6; i++) {
+            html += '<tr>';
+            
+            for (let j = 0; j < 7; j++) {
+                if (i === 0 && j < firstDay) {
+                    html += '<td></td>';
+                } else if (date > daysInMonth) {
+                    html += '<td></td>';
+                } else {
+                    const isToday = today.getFullYear() === year && 
+                                   today.getMonth() === month && 
+                                   today.getDate() === date;
+                    const isWeekend = j === 0 || j === 6;
+                    
+                    let className = '';
+                    if (isToday) className += ' today';
+                    if (isWeekend) className += ' weekend';
+                    
+                    html += `<td class="${className}" data-date="${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}">`;
+                    html += `<div class="date-number">${date}</div>`;
+                    html += `<div class="attendance-info" id="attendance-${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}"></div>`;
+                    html += '</td>';
+                    
+                    date++;
+                }
+            }
+            
+            html += '</tr>';
+            
+            if (date > daysInMonth) {
+                break;
+            }
+        }
+        
+        html += '</tbody></table>';
+        
+        document.getElementById('calendar').innerHTML = html;
+        
+        // 加载考勤数据
+        loadAttendanceData(year, month);
+    }
+    
+    function loadAttendanceData(year, month) {
+        fetch(`/api/month_attendance?year=${year}&month=${month + 1}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(record => {
+                    const dateStr = record.date;
+                    const element = document.getElementById(`attendance-${dateStr}`);
+                    
+                    if (element) {
+                        let className = '';
+                        let statusText = '';
+                        
+                        switch(record.status) {
+                            case 'present':
+                                className = 'attendance-status present';
+                                statusText = '出勤';
+                                break;
+                            case 'late':
+                                className = 'attendance-status late';
+                                statusText = '迟到';
+                                break;
+                            case 'early':
+                                className = 'attendance-status early';
+                                statusText = '早退';
+                                break;
+                            case 'absent':
+                                className = 'attendance-status absent';
+                                statusText = '缺勤';
+                                break;
+                            case 'leave':
+                                className = 'attendance-status leave';
+                                statusText = '请假';
+                                break;
+                        }
+                        
+                        if (statusText) {
+                            element.innerHTML = `<div class="${className}">${statusText}</div>`;
+                            
+                            // 更新单元格背景色
+                            const cell = element.parentElement;
+                            cell.classList.add(record.status);
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error loading attendance data:', error);
+            });
+    }
+    
+    function loadMonthStatistics(year, month) {
+        fetch(`/api/month_statistics?year=${year}&month=${month + 1}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('month_present').textContent = data.present || 0;
+                document.getElementById('month_late').textContent = data.late || 0;
+                document.getElementById('month_early').textContent = data.early || 0;
+                document.getElementById('month_leave').textContent = data.leave || 0;
+            })
+            .catch(error => {
+                console.error('Error loading month statistics:', error);
+            });
+    }
+</script>
+{% endblock %}

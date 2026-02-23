@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}注册 - 考勤系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0"><i class="bi bi-person-plus"></i> 用户注册</h4>
+            </div>
+            <div class="card-body">
+                <form id="registerForm" method="post" action="/register">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">用户名 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="form-text">用户名将用于登录系统</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="employeeId" class="form-label">员工编号 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-badge"></i></span>
+                                <input type="text" class="form-control" id="employeeId" name="employee_id" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="fullName" class="form-label">姓名 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                <input type="text" class="form-control" id="fullName" name="full_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="department" class="form-label">部门 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                <select class="form-select" id="department" name="department_id" required>
+                                    <option value="">请选择部门</option>
+                                    <option value="1">技术部</option>
+                                    <option value="2">人事部</option>
+                                    <option value="3">财务部</option>
+                                    <option value="4">市场部</option>
+                                    <option value="5">行政部</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">邮箱 <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">手机号码</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                            <input type="tel" class="form-control" id="phone" name="phone">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">密码 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">密码至少8位，包含字母和数字</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmPassword" class="form-label">确认密码 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="profileImage" class="form-label">头像照片</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-image"></i></span>
+                            <input type="file" class="form-control" id="profileImage" name="profile_image" accept="image/*">
+                        </div>
+                        <div class="form-text">上传照片用于人脸识别登录</div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="agreeTerms" name="agree_terms" required>
+                        <label class="form-check-label" for="agreeTerms">
+                            我已阅读并同意 <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">用户协议</a> 和 <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">隐私政策</a>
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-person-plus"></i> 注册
+                        </button>
+                    </div>
+                </form>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <p>已有账号? <a href="/login" class="text-decoration-none">立即登录</a></p>
+                </div>
+                
+                {% if error %}
+                <div class="alert alert-danger mt-3" role="alert">
+                    {{ error }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 用户协议模态框 -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">用户协议</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. 服务条款的接受</h6>
+                <p>欢迎使用考勤系统。通过访问或使用本系统，您同意遵守本用户协议的所有条款和条件。</p>
+                
+                <h6>2. 账户注册</h6>
+                <p>您需要提供真实、准确、完整的个人信息来注册账户。您有责任维护账户信息的准确性和及时更新。</p>
+                
+                <h6>3. 账户安全</h6>
+                <p>您有责任保护账户密码的安全性，并对在您的账户下发生的所有活动负责。</p>
+                
+                <h6>4. 隐私保护</h6>
+                <p>我们重视您的隐私。关于我们如何收集、使用和保护您的个人信息，请参阅我们的隐私政策。</p>
+                
+                <h6>5. 使用规范</h6>
+                <p>您同意不会使用本系统进行任何非法或未经授权的活动，包括但不限于干扰或破坏系统的正常运行。</p>
+                
+                <h6>6. 知识产权</h6>
+                <p>本系统的所有内容，包括但不限于文字、图片、软件等，均受知识产权法律保护。</p>
+                
+                <h6>7. 免责声明</h6>
+                <p>在法律允许的最大范围内，我们不就因使用或无法使用本系统而导致的任何间接、偶然、特殊或后果性损害承担责任。</p>
+                
+                <h6>8. 协议修改</h6>
+                <p>我们保留随时修改本用户协议的权利。修改后的协议将在网站上发布，并立即生效。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 隐私政策模态框 -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">隐私政策</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. 信息收集</h6>
+                <p>我们收集您在注册和使用过程中提供的个人信息，包括但不限于姓名、员工编号、邮箱、电话号码等。</p>
+                
+                <h6>2. 人脸信息</h6>
+                <p>为了提供人脸识别登录功能，我们会收集和处理您的人脸图像。我们承诺仅用于身份验证目的，并采取适当的安全措施保护这些信息。</p>
+                
+                <h6>3. 信息使用</h6>
+                <p>我们使用收集的信息来提供、维护和改进我们的服务，处理您的考勤记录，并与您沟通。</p>
+                
+                <h6>4. 信息共享</h6>
+                <p>除非获得您的明确同意或法律要求，我们不会与第三方共享您的个人信息。</p>
+                
+                <h6>5. 数据安全</h6>
+                <p>我们采用行业标准的安全措施来保护您的个人信息免受未经授权的访问、使用或披露。</p>
+                
+                <h6>6. 数据保留</h6>
+                <p>我们仅在必要的时间内保留您的个人信息，以履行我们收集信息的目的，并满足法律要求。</p>
+                
+                <h6>7. 您的权利</h6>
+                <p>您有权访问、更正或删除您的个人信息。如需行使这些权利，请联系我们的客服。</p>
+                
+                <h6>8. Cookie使用</h6>
+                <p>我们可能使用Cookie来改善您的用户体验。您可以通过浏览器设置管理Cookie。</p>
+                
+                <h6>9. 政策更新</h6>
+                <p>我们可能会不时更新本隐私政策。任何重大变更都会通过网站通知或电子邮件告知您。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 密码显示/隐藏切换
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // 切换图标
+        const icon = this.querySelector('i');
+        icon.classList.toggle('bi-eye');
+        icon.classList.toggle('bi-eye-slash');
+    });
+    
+    toggleConfirmPassword.addEventListener('click', function() {
+        const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordInput.setAttribute('type', type);
+        
+        // 切换图标
+        const icon = this.querySelector('i');
+        icon.classList.toggle('bi-eye');
+        icon.classList.toggle('bi-eye-slash');
+    });
+    
+    // 表单提交处理
+    const registerForm = document.getElementById('registerForm');
+    registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 验证密码匹配
+        if (passwordInput.value !== confirmPasswordInput.value) {
+            showToast('两次输入的密码不一致', 'danger');
+            return;
+        }
+        
+        // 验证密码强度
+        if (passwordInput.value.length < 8 || !/\d/.test(passwordInput.value) || !/[a-zA-Z]/.test(passwordInput.value)) {
+            showToast('密码至少8位，必须包含字母和数字', 'danger');
+            return;
+        }
+        
+        const formData = new FormData(registerForm);
+        
+        axios.post('/api/v1/auth/register', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        .then(response => {
+            showToast('注册成功，请登录', 'success');
+            
+            // 延迟跳转到登录页面
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 1500);
+        })
+        .catch(error => {
+            console.error('注册失败:', error);
+            showToast(error.response?.data?.detail || '注册失败', 'danger');
+        });
+    });
+    
+    // 图片预览
+    const profileImageInput = document.getElementById('profileImage');
+    profileImageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // 如果需要，可以在这里添加图片预览功能
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+{% endblock %}

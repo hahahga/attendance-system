@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}团队考勤{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>团队考勤</h2>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>团队成员考勤状态</h5>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <div class="form-group d-inline-block">
+                                <select id="date_filter" class="form-control">
+                                    <option value="today">今天</option>
+                                    <option value="week">本周</option>
+                                    <option value="month">本月</option>
+                                </select>
+                            </div>
+                            <button id="refresh_btn" class="btn btn-primary ml-2">
+                                <i class="fas fa-sync-alt"></i> 刷新
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="team_attendance_table">
+                            <thead>
+                                <tr>
+                                    <th>员工姓名</th>
+                                    <th>部门</th>
+                                    <th>今日状态</th>
+                                    <th>签到时间</th>
+                                    <th>签退时间</th>
+                                    <th>工作时长</th>
+                                    <th>本月出勤</th>
+                                    <th>本月请假</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="team_attendance_body">
+                                <!-- 数据将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">今日出勤率</h5>
+                    <h2 class="text-success" id="today_attendance_rate">0%</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">本周出勤率</h5>
+                    <h2 class="text-info" id="week_attendance_rate">0%</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">本月出勤率</h5>
+                    <h2 class="text-primary" id="month_attendance_rate">0%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>团队考勤统计</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="attendance_chart" width="400" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-present {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-late {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-early {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-absent {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-leave {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-weekend {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTeamAttendance();
+        loadAttendanceStatistics();
+        
+        // 绑定刷新按钮
+        document.getElementById('refresh_btn').addEventListener('click', function() {
+            loadTeamAttendance();
+            loadAttendanceStatistics();
+        });
+        
+        // 绑定日期筛选器
+        document.getElementById('date_filter').addEventListener('change', function() {
+            loadTeamAttendance();
+        });
+    });
+    
+    function loadTeamAttendance() {
+        const filter = document.getElementById('date_filter').value;
+        
+        fetch(`/api/team_attendance?filter=${filter}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('team_attendance_body');
+                tbody.innerHTML = '';
+                
+                data.forEach(member => {
+                    const row = document.createElement('tr');
+                    
+                    let statusClass = '';
+                    let statusText = '';
+                    
+                    switch(member.today_status) {
+                        case 'present':
+                            statusClass = 'status-present';
+                            statusText = '出勤';
+                            break;
+                        case 'late':
+                            statusClass = 'status-late';
+                            statusText = '迟到';
+                            break;
+                        case 'early':
+                            statusClass = 'status-early';
+                            statusText = '早退';
+                            break;
+                        case 'absent':
+                            statusClass = 'status-absent';
+                            statusText = '缺勤';
+                            break;
+                        case 'leave':
+                            statusClass = 'status-leave';
+                            statusText = '请假';
+                            break;
+                        case 'weekend':
+                            statusClass = 'status-weekend';
+                            statusText = '周末';
+                            break;
+                        default:
+                            statusClass = 'status-absent';
+                            statusText = '未知';
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${member.name}</td>
+                        <td>${member.department}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${member.clock_in_time || '-'}</td>
+                        <td>${member.clock_out_time || '-'}</td>
+                        <td>${member.work_hours || '-'}</td>
+                        <td>${member.month_present}天</td>
+                        <td>${member.month_leave}天</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="viewMemberDetails('${member.id}')">
+                                详情
+                            </button>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading team attendance:', error);
+                showNotification('加载团队考勤数据失败', 'danger');
+            });
+    }
+    
+    function loadAttendanceStatistics() {
+        fetch('/api/team_statistics')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('today_attendance_rate').textContent = data.today_rate + '%';
+                document.getElementById('week_attendance_rate').textContent = data.week_rate + '%';
+                document.getElementById('month_attendance_rate').textContent = data.month_rate + '%';
+                
+                // 绘制考勤统计图表
+                drawAttendanceChart(data.chart_data);
+            })
+            .catch(error => {
+                console.error('Error loading attendance statistics:', error);
+            });
+    }
+    
+    function drawAttendanceChart(chartData) {
+        const ctx = document.getElementById('attendance_chart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [
+                    {
+                        label: '出勤',
+                        data: chartData.present,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '迟到',
+                        data: chartData.late,
+                        backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '早退',
+                        data: chartData.early,
+                        backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '请假',
+                        data: chartData.leave,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '人数'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '日期'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '团队考勤统计（最近7天）'
+                    }
+                }
+            }
+        });
+    }
+    
+    function viewMemberDetails(memberId) {
+        // 跳转到成员详情页面或打开模态框
+        window.location.href = `/team_member/${memberId}`;
+    }
+    
+    function showNotification(message, type) {
+        // 创建通知元素
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.top = '20px';
+        notification.style.right = '20px';
+        notification.style.zIndex = '9999';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 3秒后自动关闭
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+</script>
+{% endblock %}

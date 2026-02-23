@@ -1,0 +1,1091 @@
+{% extends "base.html" %}
+
+{% block title %}系统设置 - 考勤系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">系统设置</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="backupBtn">
+                        <i class="bi bi-cloud-download"></i> 备份数据
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="restoreBtn">
+                        <i class="bi bi-cloud-upload"></i> 恢复数据
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 设置选项卡 -->
+<div class="row">
+    <div class="col-12">
+        <ul class="nav nav-tabs" id="settingsTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">基本设置</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab" aria-controls="attendance" aria-selected="false">考勤设置</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="leave-tab" data-bs-toggle="tab" data-bs-target="#leave" type="button" role="tab" aria-controls="leave" aria-selected="false">请假设置</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="notification-tab" data-bs-toggle="tab" data-bs-target="#notification" type="button" role="tab" aria-controls="notification" aria-selected="false">通知设置</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">安全设置</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" type="button" role="tab" aria-controls="system" aria-selected="false">系统设置</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="settingsTabContent">
+            <!-- 基本设置 -->
+            <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">基本设置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="basicSettingsForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="systemName" class="form-label">系统名称</label>
+                                    <input type="text" class="form-control" id="systemName" name="system_name" value="考勤管理系统">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="companyName" class="form-label">公司名称</label>
+                                    <input type="text" class="form-control" id="companyName" name="company_name" value="示例公司">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="systemLogo" class="form-label">系统Logo</label>
+                                    <input type="file" class="form-control" id="systemLogo" name="system_logo" accept="image/*">
+                                    <div class="form-text">建议尺寸: 200x50像素，支持PNG、JPG格式</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="favicon" class="form-label">网站图标</label>
+                                    <input type="file" class="form-control" id="favicon" name="favicon" accept="image/*">
+                                    <div class="form-text">建议尺寸: 32x32像素，支持ICO、PNG格式</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="systemDescription" class="form-label">系统描述</label>
+                                <textarea class="form-control" id="systemDescription" name="system_description" rows="3">企业考勤管理系统，提供签到签退、请假申请、考勤统计等功能</textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="contactEmail" class="form-label">联系邮箱</label>
+                                    <input type="email" class="form-control" id="contactEmail" name="contact_email" value="admin@example.com">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="contactPhone" class="form-label">联系电话</label>
+                                    <input type="tel" class="form-control" id="contactPhone" name="contact_phone" value="400-123-4567">
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary" id="saveBasicSettings">保存设置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 考勤设置 -->
+            <div class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">考勤设置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="attendanceSettingsForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="workStartTime" class="form-label">上班时间</label>
+                                    <input type="time" class="form-control" id="workStartTime" name="work_start_time" value="09:00">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="workEndTime" class="form-label">下班时间</label>
+                                    <input type="time" class="form-control" id="workEndTime" name="work_end_time" value="18:00">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="lateThreshold" class="form-label">迟到阈值(分钟)</label>
+                                    <input type="number" class="form-control" id="lateThreshold" name="late_threshold" value="10" min="0">
+                                    <div class="form-text">超过上班时间多少分钟算迟到</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="earlyThreshold" class="form-label">早退阈值(分钟)</label>
+                                    <input type="number" class="form-control" id="earlyThreshold" name="early_threshold" value="30" min="0">
+                                    <div class="form-text">提前下班时间多少分钟算早退</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="absentThreshold" class="form-label">缺勤阈值(小时)</label>
+                                    <input type="number" class="form-control" id="absentThreshold" name="absent_threshold" value="4" min="1" max="24">
+                                    <div class="form-text">当日工作时长少于多少小时算缺勤</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="overtimeThreshold" class="form-label">加班阈值(分钟)</label>
+                                    <input type="number" class="form-control" id="overtimeThreshold" name="overtime_threshold" value="60" min="0">
+                                    <div class="form-text">超过下班时间多少分钟算加班</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="allowWeekendOvertime" class="form-label">允许周末加班</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="allowWeekendOvertime" name="allow_weekend_overtime" checked>
+                                        <label class="form-check-label" for="allowWeekendOvertime">允许员工在周末加班并记录</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="allowHolidayOvertime" class="form-label">允许节假日加班</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="allowHolidayOvertime" name="allow_holiday_overtime" checked>
+                                        <label class="form-check-label" for="allowHolidayOvertime">允许员工在法定节假日加班并记录</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="attendanceMethod" class="form-label">考勤方式</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="attendance_method" id="methodPassword" value="password" checked>
+                                    <label class="form-check-label" for="methodPassword">账号密码</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="attendance_method" id="methodFace" value="face">
+                                    <label class="form-check-label" for="methodFace">人脸识别</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="attendance_method" id="methodBoth" value="both">
+                                    <label class="form-check-label" for="methodBoth">账号密码和人脸识别</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="allowRemoteCheck" class="form-label">允许远程打卡</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="allowRemoteCheck" name="allow_remote_check">
+                                    <label class="form-check-label" for="allowRemoteCheck">允许员工在非公司网络环境下打卡</label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary" id="saveAttendanceSettings">保存设置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 请假设置 -->
+            <div class="tab-pane fade" id="leave" role="tabpanel" aria-labelledby="leave-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">请假设置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="leaveSettingsForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="annualLeaveDays" class="form-label">年假天数</label>
+                                    <input type="number" class="form-control" id="annualLeaveDays" name="annual_leave_days" value="10" min="0">
+                                    <div class="form-text">员工每年可享受的年假天数</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="sickLeaveDays" class="form-label">病假天数</label>
+                                    <input type="number" class="form-control" id="sickLeaveDays" name="sick_leave_days" value="5" min="0">
+                                    <div class="form-text">员工每年可享受的病假天数</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="personalLeaveDays" class="form-label">事假天数</label>
+                                    <input type="number" class="form-control" id="personalLeaveDays" name="personal_leave_days" value="3" min="0">
+                                    <div class="form-text">员工每月可享受的事假天数</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="maternityLeaveDays" class="form-label">产假天数</label>
+                                    <input type="number" class="form-control" id="maternityLeaveDays" name="maternity_leave_days" value="98" min="0">
+                                    <div class="form-text">员工可享受的产假天数</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="needApproval" class="form-label">需要审批</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="needApproval" name="need_approval" checked>
+                                        <label class="form-check-label" for="needApproval">请假申请需要审批</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="autoApproval" class="form-label">自动审批</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="autoApproval" name="auto_approval">
+                                        <label class="form-check-label" for="autoApproval">符合条件时自动审批通过</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="maxLeaveDays" class="form-label">最长请假天数</label>
+                                    <input type="number" class="form-control" id="maxLeaveDays" name="max_leave_days" value="7" min="1">
+                                    <div class="form-text">单次请假最长天数</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="advanceNoticeDays" class="form-label">提前通知天数</label>
+                                    <input type="number" class="form-control" id="advanceNoticeDays" name="advance_notice_days" value="1" min="0">
+                                    <div class="form-text">事假需要提前多少天申请</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="leaveAttachmentRequired" class="form-label">需要附件</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="leaveAttachmentRequired" name="leave_attachment_required">
+                                    <label class="form-check-label" for="leaveAttachmentRequired">请假申请需要上传附件</label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary" id="saveLeaveSettings">保存设置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 通知设置 -->
+            <div class="tab-pane fade" id="notification" role="tabpanel" aria-labelledby="notification-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">通知设置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="notificationSettingsForm">
+                            <div class="mb-3">
+                                <label class="form-label">邮件通知</label>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="emailAttendanceReminder" name="email_attendance_reminder" checked>
+                                    <label class="form-check-label" for="emailAttendanceReminder">考勤提醒 - 每日上班前30分钟发送</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="emailLeaveApproval" name="email_leave_approval" checked>
+                                    <label class="form-check-label" for="emailLeaveApproval">请假审批通知 - 有新请假申请时发送</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="emailLeaveResult" name="email_leave_result" checked>
+                                    <label class="form-check-label" for="emailLeaveResult">请假结果通知 - 审批完成后发送</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="emailMonthlyReport" name="email_monthly_report">
+                                    <label class="form-check-label" for="emailMonthlyReport">月度考勤报告 - 每月1号发送</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">系统通知</label>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="systemAttendanceReminder" name="system_attendance_reminder" checked>
+                                    <label class="form-check-label" for="systemAttendanceReminder">考勤提醒 - 系统内通知</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="systemLeaveApproval" name="system_leave_approval" checked>
+                                    <label class="form-check-label" for="systemLeaveApproval">请假审批通知 - 系统内通知</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="systemLeaveResult" name="system_leave_result" checked>
+                                    <label class="form-check-label" for="systemLeaveResult">请假结果通知 - 系统内通知</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="systemBirthdayReminder" name="system_birthday_reminder">
+                                    <label class="form-check-label" for="systemBirthdayReminder">生日提醒 - 员工生日当天发送</label>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="smtpServer" class="form-label">SMTP服务器</label>
+                                    <input type="text" class="form-control" id="smtpServer" name="smtp_server" value="smtp.example.com">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="smtpPort" class="form-label">SMTP端口</label>
+                                    <input type="number" class="form-control" id="smtpPort" name="smtp_port" value="587">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="smtpUsername" class="form-label">SMTP用户名</label>
+                                    <input type="text" class="form-control" id="smtpUsername" name="smtp_username" value="noreply@example.com">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="smtpPassword" class="form-label">SMTP密码</label>
+                                    <input type="password" class="form-control" id="smtpPassword" name="smtp_password">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="smtpUseTLS" class="form-label">使用TLS加密</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smtpUseTLS" name="smtp_use_tls" checked>
+                                    <label class="form-check-label" for="smtpUseTLS">启用TLS加密传输</label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-outline-secondary me-2" id="testEmailBtn">测试邮件</button>
+                                <button type="button" class="btn btn-primary" id="saveNotificationSettings">保存设置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 安全设置 -->
+            <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">安全设置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="securitySettingsForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="sessionTimeout" class="form-label">会话超时(分钟)</label>
+                                    <input type="number" class="form-control" id="sessionTimeout" name="session_timeout" value="30" min="5">
+                                    <div class="form-text">用户无操作多长时间后自动登出</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="maxLoginAttempts" class="form-label">最大登录尝试次数</label>
+                                    <input type="number" class="form-control" id="maxLoginAttempts" name="max_login_attempts" value="5" min="1">
+                                    <div class="form-text">连续登录失败多少次后锁定账户</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="lockoutDuration" class="form-label">锁定时长(分钟)</label>
+                                    <input type="number" class="form-control" id="lockoutDuration" name="lockout_duration" value="15" min="1">
+                                    <div class="form-text">账户锁定多长时间后自动解锁</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="passwordExpiry" class="form-label">密码有效期(天)</label>
+                                    <input type="number" class="form-control" id="passwordExpiry" name="password_expiry" value="90" min="0">
+                                    <div class="form-text">0表示密码永不过期</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="passwordComplexity" class="form-label">密码复杂度要求</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireLowercase" name="require_lowercase" checked>
+                                    <label class="form-check-label" for="requireLowercase">包含小写字母</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireUppercase" name="require_uppercase" checked>
+                                    <label class="form-check-label" for="requireUppercase">包含大写字母</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireNumbers" name="require_numbers" checked>
+                                    <label class="form-check-label" for="requireNumbers">包含数字</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireSpecialChars" name="require_special_chars">
+                                    <label class="form-check-label" for="requireSpecialChars">包含特殊字符</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="minPasswordLength" class="form-label">最小密码长度</label>
+                                <input type="number" class="form-control" id="minPasswordLength" name="min_password_length" value="8" min="6">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="enableTwoFactor" class="form-label">启用双因素认证</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enableTwoFactor" name="enable_two_factor">
+                                    <label class="form-check-label" for="enableTwoFactor">要求用户使用双因素认证</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="logSecurityEvents" class="form-label">记录安全事件</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="logSecurityEvents" name="log_security_events" checked>
+                                    <label class="form-check-label" for="logSecurityEvents">记录登录失败、密码修改等安全事件</label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary" id="saveSecuritySettings">保存设置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 系统设置 -->
+            <div class="tab-pane fade" id="system" role="tabpanel" aria-labelledby="system-tab">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">系统设置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="systemSettingsForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="timezone" class="form-label">时区</label>
+                                    <select class="form-select" id="timezone" name="timezone">
+                                        <option value="Asia/Shanghai" selected>中国标准时间 (UTC+8)</option>
+                                        <option value="UTC">协调世界时 (UTC)</option>
+                                        <option value="America/New_York">美国东部时间 (UTC-5)</option>
+                                        <option value="Europe/London">英国时间 (UTC+0)</option>
+                                        <option value="Asia/Tokyo">日本标准时间 (UTC+9)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="dateFormat" class="form-label">日期格式</label>
+                                    <select class="form-select" id="dateFormat" name="date_format">
+                                        <option value="YYYY-MM-DD" selected>2023-12-31</option>
+                                        <option value="DD/MM/YYYY">31/12/2023</option>
+                                        <option value="MM/DD/YYYY">12/31/2023</option>
+                                        <option value="DD-MM-YYYY">31-12-2023</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="timeFormat" class="form-label">时间格式</label>
+                                    <select class="form-select" id="timeFormat" name="time_format">
+                                        <option value="24-hour" selected>24小时制 (09:00)</option>
+                                        <option value="12-hour">12小时制 (09:00 AM)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="language" class="form-label">语言</label>
+                                    <select class="form-select" id="language" name="language">
+                                        <option value="zh-CN" selected>简体中文</option>
+                                        <option value="zh-TW">繁体中文</option>
+                                        <option value="en-US">English (US)</option>
+                                        <option value="ja-JP">日本語</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="enableMaintenance" class="form-label">维护模式</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enableMaintenance" name="enable_maintenance">
+                                    <label class="form-check-label" for="enableMaintenance">启用维护模式，只有管理员可以访问系统</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="maintenanceMessage" class="form-label">维护消息</label>
+                                <textarea class="form-control" id="maintenanceMessage" name="maintenance_message" rows="3" placeholder="系统正在维护中，请稍后再试..."></textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="autoBackup" class="form-label">自动备份</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="autoBackup" name="auto_backup" checked>
+                                        <label class="form-check-label" for="autoBackup">启用自动数据备份</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="backupFrequency" class="form-label">备份频率</label>
+                                    <select class="form-select" id="backupFrequency" name="backup_frequency">
+                                        <option value="daily" selected>每日</option>
+                                        <option value="weekly">每周</option>
+                                        <option value="monthly">每月</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="backupRetention" class="form-label">备份保留天数</label>
+                                    <input type="number" class="form-control" id="backupRetention" name="backup_retention" value="30" min="1">
+                                    <div class="form-text">自动删除超过指定天数的备份文件</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="logRetention" class="form-label">日志保留天数</label>
+                                    <input type="number" class="form-control" id="logRetention" name="log_retention" value="90" min="1">
+                                    <div class="form-text">自动删除超过指定天数的日志文件</div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-outline-secondary me-2" id="clearCacheBtn">清除缓存</button>
+                                <button type="button" class="btn btn-primary" id="saveSystemSettings">保存设置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 备份模态框 -->
+<div class="modal fade" id="backupModal" tabindex="-1" aria-labelledby="backupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="backupModalLabel">数据备份</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="backupForm">
+                    <div class="mb-3">
+                        <label for="backupType" class="form-label">备份类型</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="backup_type" id="fullBackup" value="full" checked>
+                            <label class="form-check-label" for="fullBackup">完整备份 - 包含所有数据</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="backup_type" id="dataBackup" value="data">
+                            <label class="form-check-label" for="dataBackup">数据备份 - 仅包含业务数据</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="backupDescription" class="form-label">备份描述</label>
+                        <textarea class="form-control" id="backupDescription" name="backup_description" rows="2" placeholder="描述此备份的用途或内容..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeFiles" name="include_files" checked>
+                            <label class="form-check-label" for="includeFiles">包含上传的文件和图片</label>
+                        </div>
+                    </div>
+                </form>
+                
+                <div id="backupProgress" style="display: none;">
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="backupProgressBar">0%</div>
+                    </div>
+                    <div id="backupStatus" class="text-center"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="startBackupBtn">开始备份</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 恢复模态框 -->
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="restoreModalLabel">数据恢复</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <strong>警告:</strong> 数据恢复将覆盖当前系统中的所有数据，此操作不可撤销！
+                </div>
+                
+                <form id="restoreForm">
+                    <div class="mb-3">
+                        <label for="backupFile" class="form-label">选择备份文件</label>
+                        <input type="file" class="form-control" id="backupFile" name="backup_file" accept=".bak,.sql,.zip">
+                        <div class="form-text">支持 .bak, .sql, .zip 格式的备份文件</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmRestore" name="confirm_restore">
+                            <label class="form-check-label" for="confirmRestore">我确认要恢复数据，并了解此操作的风险</label>
+                        </div>
+                    </div>
+                </form>
+                
+                <div id="restoreProgress" style="display: none;">
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="restoreProgressBar">0%</div>
+                    </div>
+                    <div id="restoreStatus" class="text-center"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="startRestoreBtn" disabled>开始恢复</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 加载所有设置
+    loadAllSettings();
+    
+    // 备份按钮点击事件
+    document.getElementById('backupBtn').addEventListener('click', function() {
+        const modal = new bootstrap.Modal(document.getElementById('backupModal'));
+        modal.show();
+    });
+    
+    // 恢复按钮点击事件
+    document.getElementById('restoreBtn').addEventListener('click', function() {
+        const modal = new bootstrap.Modal(document.getElementById('restoreModal'));
+        modal.show();
+    });
+    
+    // 开始备份按钮
+    document.getElementById('startBackupBtn').addEventListener('click', function() {
+        startBackup();
+    });
+    
+    // 开始恢复按钮
+    document.getElementById('startRestoreBtn').addEventListener('click', function() {
+        startRestore();
+    });
+    
+    // 确认恢复复选框
+    document.getElementById('confirmRestore').addEventListener('change', function() {
+        const restoreBtn = document.getElementById('startRestoreBtn');
+        restoreBtn.disabled = !this.checked;
+    });
+    
+    // 保存基本设置
+    document.getElementById('saveBasicSettings').addEventListener('click', function() {
+        saveSettings('basic');
+    });
+    
+    // 保存考勤设置
+    document.getElementById('saveAttendanceSettings').addEventListener('click', function() {
+        saveSettings('attendance');
+    });
+    
+    // 保存请假设置
+    document.getElementById('saveLeaveSettings').addEventListener('click', function() {
+        saveSettings('leave');
+    });
+    
+    // 保存通知设置
+    document.getElementById('saveNotificationSettings').addEventListener('click', function() {
+        saveSettings('notification');
+    });
+    
+    // 保存安全设置
+    document.getElementById('saveSecuritySettings').addEventListener('click', function() {
+        saveSettings('security');
+    });
+    
+    // 保存系统设置
+    document.getElementById('saveSystemSettings').addEventListener('click', function() {
+        saveSettings('system');
+    });
+    
+    // 测试邮件
+    document.getElementById('testEmailBtn').addEventListener('click', function() {
+        testEmail();
+    });
+    
+    // 清除缓存
+    document.getElementById('clearCacheBtn').addEventListener('click', function() {
+        clearCache();
+    });
+    
+    // 加载所有设置
+    function loadAllSettings() {
+        loadBasicSettings();
+        loadAttendanceSettings();
+        loadLeaveSettings();
+        loadNotificationSettings();
+        loadSecuritySettings();
+        loadSystemSettings();
+    }
+    
+    // 加载基本设置
+    function loadBasicSettings() {
+        axios.get('/api/v1/settings/basic')
+            .then(response => {
+                const data = response.data;
+                
+                // 填充表单数据
+                document.getElementById('systemName').value = data.system_name || '';
+                document.getElementById('companyName').value = data.company_name || '';
+                document.getElementById('systemDescription').value = data.system_description || '';
+                document.getElementById('contactEmail').value = data.contact_email || '';
+                document.getElementById('contactPhone').value = data.contact_phone || '';
+            })
+            .catch(error => {
+                console.error('加载基本设置失败:', error);
+            });
+    }
+    
+    // 加载考勤设置
+    function loadAttendanceSettings() {
+        axios.get('/api/v1/settings/attendance')
+            .then(response => {
+                const data = response.data;
+                
+                // 填充表单数据
+                document.getElementById('workStartTime').value = data.work_start_time || '09:00';
+                document.getElementById('workEndTime').value = data.work_end_time || '18:00';
+                document.getElementById('lateThreshold').value = data.late_threshold || 10;
+                document.getElementById('earlyThreshold').value = data.early_threshold || 30;
+                document.getElementById('absentThreshold').value = data.absent_threshold || 4;
+                document.getElementById('overtimeThreshold').value = data.overtime_threshold || 60;
+                document.getElementById('allowWeekendOvertime').checked = data.allow_weekend_overtime !== false;
+                document.getElementById('allowHolidayOvertime').checked = data.allow_holiday_overtime !== false;
+                
+                // 设置考勤方式
+                const attendanceMethod = data.attendance_method || 'password';
+                document.querySelector(`input[name="attendance_method"][value="${attendanceMethod}"]`).checked = true;
+                
+                document.getElementById('allowRemoteCheck').checked = data.allow_remote_check || false;
+            })
+            .catch(error => {
+                console.error('加载考勤设置失败:', error);
+            });
+    }
+    
+    // 加载请假设置
+    function loadLeaveSettings() {
+        axios.get('/api/v1/settings/leave')
+            .then(response => {
+                const data = response.data;
+                
+                // 填充表单数据
+                document.getElementById('annualLeaveDays').value = data.annual_leave_days || 10;
+                document.getElementById('sickLeaveDays').value = data.sick_leave_days || 5;
+                document.getElementById('personalLeaveDays').value = data.personal_leave_days || 3;
+                document.getElementById('maternityLeaveDays').value = data.maternity_leave_days || 98;
+                document.getElementById('needApproval').checked = data.need_approval !== false;
+                document.getElementById('autoApproval').checked = data.auto_approval || false;
+                document.getElementById('maxLeaveDays').value = data.max_leave_days || 7;
+                document.getElementById('advanceNoticeDays').value = data.advance_notice_days || 1;
+                document.getElementById('leaveAttachmentRequired').checked = data.leave_attachment_required || false;
+            })
+            .catch(error => {
+                console.error('加载请假设置失败:', error);
+            });
+    }
+    
+    // 加载通知设置
+    function loadNotificationSettings() {
+        axios.get('/api/v1/settings/notification')
+            .then(response => {
+                const data = response.data;
+                
+                // 填充邮件通知设置
+                document.getElementById('emailAttendanceReminder').checked = data.email_attendance_reminder !== false;
+                document.getElementById('emailLeaveApproval').checked = data.email_leave_approval !== false;
+                document.getElementById('emailLeaveResult').checked = data.email_leave_result !== false;
+                document.getElementById('emailMonthlyReport').checked = data.email_monthly_report || false;
+                
+                // 填充系统通知设置
+                document.getElementById('systemAttendanceReminder').checked = data.system_attendance_reminder !== false;
+                document.getElementById('systemLeaveApproval').checked = data.system_leave_approval !== false;
+                document.getElementById('systemLeaveResult').checked = data.system_leave_result !== false;
+                document.getElementById('systemBirthdayReminder').checked = data.system_birthday_reminder || false;
+                
+                // 填充SMTP设置
+                document.getElementById('smtpServer').value = data.smtp_server || '';
+                document.getElementById('smtpPort').value = data.smtp_port || 587;
+                document.getElementById('smtpUsername').value = data.smtp_username || '';
+                document.getElementById('smtpPassword').value = data.smtp_password || '';
+                document.getElementById('smtpUseTLS').checked = data.smtp_use_tls !== false;
+            })
+            .catch(error => {
+                console.error('加载通知设置失败:', error);
+            });
+    }
+    
+    // 加载安全设置
+    function loadSecuritySettings() {
+        axios.get('/api/v1/settings/security')
+            .then(response => {
+                const data = response.data;
+                
+                // 填充表单数据
+                document.getElementById('sessionTimeout').value = data.session_timeout || 30;
+                document.getElementById('maxLoginAttempts').value = data.max_login_attempts || 5;
+                document.getElementById('lockoutDuration').value = data.lockout_duration || 15;
+                document.getElementById('passwordExpiry').value = data.password_expiry || 90;
+                document.getElementById('minPasswordLength').value = data.min_password_length || 8;
+                
+                // 填充密码复杂度设置
+                document.getElementById('requireLowercase').checked = data.require_lowercase !== false;
+                document.getElementById('requireUppercase').checked = data.require_uppercase !== false;
+                document.getElementById('requireNumbers').checked = data.require_numbers !== false;
+                document.getElementById('requireSpecialChars').checked = data.require_special_chars || false;
+                
+                document.getElementById('enableTwoFactor').checked = data.enable_two_factor || false;
+                document.getElementById('logSecurityEvents').checked = data.log_security_events !== false;
+            })
+            .catch(error => {
+                console.error('加载安全设置失败:', error);
+            });
+    }
+    
+    // 加载系统设置
+    function loadSystemSettings() {
+        axios.get('/api/v1/settings/system')
+            .then(response => {
+                const data = response.data;
+                
+                // 填充表单数据
+                document.getElementById('timezone').value = data.timezone || 'Asia/Shanghai';
+                document.getElementById('dateFormat').value = data.date_format || 'YYYY-MM-DD';
+                document.getElementById('timeFormat').value = data.time_format || '24-hour';
+                document.getElementById('language').value = data.language || 'zh-CN';
+                
+                document.getElementById('enableMaintenance').checked = data.enable_maintenance || false;
+                document.getElementById('maintenanceMessage').value = data.maintenance_message || '';
+                
+                document.getElementById('autoBackup').checked = data.auto_backup !== false;
+                document.getElementById('backupFrequency').value = data.backup_frequency || 'daily';
+                document.getElementById('backupRetention').value = data.backup_retention || 30;
+                document.getElementById('logRetention').value = data.log_retention || 90;
+            })
+            .catch(error => {
+                console.error('加载系统设置失败:', error);
+            });
+    }
+    
+    // 保存设置
+    function saveSettings(category) {
+        let formId, url;
+        
+        switch(category) {
+            case 'basic':
+                formId = 'basicSettingsForm';
+                url = '/api/v1/settings/basic';
+                break;
+            case 'attendance':
+                formId = 'attendanceSettingsForm';
+                url = '/api/v1/settings/attendance';
+                break;
+            case 'leave':
+                formId = 'leaveSettingsForm';
+                url = '/api/v1/settings/leave';
+                break;
+            case 'notification':
+                formId = 'notificationSettingsForm';
+                url = '/api/v1/settings/notification';
+                break;
+            case 'security':
+                formId = 'securitySettingsForm';
+                url = '/api/v1/settings/security';
+                break;
+            case 'system':
+                formId = 'systemSettingsForm';
+                url = '/api/v1/settings/system';
+                break;
+            default:
+                return;
+        }
+        
+        const form = document.getElementById(formId);
+        const formData = new FormData(form);
+        const settings = Object.fromEntries(formData.entries());
+        
+        // 处理复选框和单选按钮
+        const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            settings[checkbox.name] = checkbox.checked;
+        });
+        
+        const radios = form.querySelectorAll('input[type="radio"]:checked');
+        radios.forEach(radio => {
+            settings[radio.name] = radio.value;
+        });
+        
+        // 处理文件上传
+        const fileInputs = form.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(input => {
+            if (input.files.length > 0) {
+                settings[input.name] = input.files[0];
+            }
+        });
+        
+        axios.put(url, settings)
+            .then(response => {
+                showToast('设置已保存', 'success');
+            })
+            .catch(error => {
+                console.error('保存设置失败:', error);
+                showToast(error.response?.data?.detail || '保存失败', 'danger');
+            });
+    }
+    
+    // 开始备份
+    function startBackup() {
+        const form = document.getElementById('backupForm');
+        const formData = new FormData(form);
+        const settings = Object.fromEntries(formData.entries());
+        
+        // 显示进度条
+        document.getElementById('backupProgress').style.display = 'block';
+        document.getElementById('backupProgressBar').style.width = '0%';
+        document.getElementById('backupProgressBar').setAttribute('aria-valuenow', 0);
+        document.getElementById('backupProgressBar').textContent = '0%';
+        document.getElementById('backupStatus').textContent = '正在准备备份...';
+        
+        // 禁用开始备份按钮
+        document.getElementById('startBackupBtn').disabled = true;
+        
+        axios.post('/api/v1/system/backup', settings)
+            .then(response => {
+                // 模拟进度更新
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress > 100) {
+                        clearInterval(interval);
+                        document.getElementById('backupProgressBar').style.width = '100%';
+                        document.getElementById('backupProgressBar').setAttribute('aria-valuenow', 100);
+                        document.getElementById('backupProgressBar').textContent = '100%';
+                        document.getElementById('backupStatus').textContent = '备份完成！';
+                        
+                        // 下载备份文件
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = response.data.download_url;
+                        downloadLink.download = response.data.filename;
+                        downloadLink.click();
+                        
+                        // 3秒后关闭模态框
+                        setTimeout(() => {
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('backupModal'));
+                            modal.hide();
+                            document.getElementById('backupProgress').style.display = 'none';
+                            document.getElementById('startBackupBtn').disabled = false;
+                        }, 3000);
+                    } else {
+                        document.getElementById('backupProgressBar').style.width = progress + '%';
+                        document.getElementById('backupProgressBar').setAttribute('aria-valuenow', progress);
+                        document.getElementById('backupProgressBar').textContent = progress + '%';
+                        
+                        if (progress < 30) {
+                            document.getElementById('backupStatus').textContent = '正在收集数据...';
+                        } else if (progress < 70) {
+                            document.getElementById('backupStatus').textContent = '正在压缩数据...';
+                        } else {
+                            document.getElementById('backupStatus').textContent = '正在生成备份文件...';
+                        }
+                    }
+                }, 300);
+            })
+            .catch(error => {
+                console.error('备份失败:', error);
+                document.getElementById('backupStatus').textContent = '备份失败: ' + (error.response?.data?.detail || '未知错误');
+                document.getElementById('startBackupBtn').disabled = false;
+            });
+    }
+    
+    // 开始恢复
+    function startRestore() {
+        const form = document.getElementById('restoreForm');
+        const formData = new FormData(form);
+        
+        // 显示进度条
+        document.getElementById('restoreProgress').style.display = 'block';
+        document.getElementById('restoreProgressBar').style.width = '0%';
+        document.getElementById('restoreProgressBar').setAttribute('aria-valuenow', 0);
+        document.getElementById('restoreProgressBar').textContent = '0%';
+        document.getElementById('restoreStatus').textContent = '正在验证备份文件...';
+        
+        // 禁用开始恢复按钮
+        document.getElementById('startRestoreBtn').disabled = true;
+        
+        axios.post('/api/v1/system/restore', formData)
+            .then(response => {
+                // 模拟进度更新
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress > 100) {
+                        clearInterval(interval);
+                        document.getElementById('restoreProgressBar').style.width = '100%';
+                        document.getElementById('restoreProgressBar').setAttribute('aria-valuenow', 100);
+                        document.getElementById('restoreProgressBar').textContent = '100%';
+                        document.getElementById('restoreStatus').textContent = '数据恢复完成！系统将在3秒后刷新...';
+                        
+                        // 3秒后刷新页面
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000);
+                    } else {
+                        document.getElementById('restoreProgressBar').style.width = progress + '%';
+                        document.getElementById('restoreProgressBar').setAttribute('aria-valuenow', progress);
+                        document.getElementById('restoreProgressBar').textContent = progress + '%';
+                        
+                        if (progress < 30) {
+                            document.getElementById('restoreStatus').textContent = '正在验证备份文件...';
+                        } else if (progress < 70) {
+                            document.getElementById('restoreStatus').textContent = '正在恢复数据...';
+                        } else {
+                            document.getElementById('restoreStatus').textContent = '正在重建索引...';
+                        }
+                    }
+                }, 300);
+            })
+            .catch(error => {
+                console.error('恢复失败:', error);
+                document.getElementById('restoreStatus').textContent = '恢复失败: ' + (error.response?.data?.detail || '未知错误');
+                document.getElementById('startRestoreBtn').disabled = false;
+            });
+    }
+    
+    // 测试邮件
+    function testEmail() {
+        axios.post('/api/v1/system/test-email')
+            .then(response => {
+                showToast('测试邮件已发送，请检查收件箱', 'success');
+            })
+            .catch(error => {
+                console.error('发送测试邮件失败:', error);
+                showToast(error.response?.data?.detail || '发送失败', 'danger');
+            });
+    }
+    
+    // 清除缓存
+    function clearCache() {
+        axios.post('/api/v1/system/clear-cache')
+            .then(response => {
+                showToast('缓存已清除', 'success');
+            })
+            .catch(error => {
+                console.error('清除缓存失败:', error);
+                showToast(error.response?.data?.detail || '清除失败', 'danger');
+            });
+    }
+});
+</script>
+{% endblock %}

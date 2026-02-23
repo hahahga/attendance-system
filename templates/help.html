@@ -1,0 +1,600 @@
+{% extends "base.html" %}
+
+{% block title %}帮助中心 - 考勤系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">帮助中心</h1>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 帮助分类导航 -->
+    <div class="col-md-3 mb-4">
+        <div class="card shadow sticky-top" style="top: 20px;">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">帮助分类</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="#getting-started" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                    <i class="bi bi-rocket-takeoff me-2"></i> 快速入门
+                </a>
+                <a href="#attendance" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="bi bi-clock-history me-2"></i> 考勤管理
+                </a>
+                <a href="#leave" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="bi bi-calendar-x me-2"></i> 请假管理
+                </a>
+                <a href="#face" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="bi bi-person-bounding-box me-2"></i> 人脸识别
+                </a>
+                <a href="#statistics" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="bi bi-graph-up me-2"></i> 统计报表
+                </a>
+                <a href="#admin" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="bi bi-gear me-2"></i> 管理员功能
+                </a>
+                <a href="#faq" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="bi bi-question-circle me-2"></i> 常见问题
+                </a>
+                <a href="#contact" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                    <i class="bi bi-envelope me-2"></i> 联系支持
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 帮助内容 -->
+    <div class="col-md-9">
+        <div class="tab-content">
+            <!-- 快速入门 -->
+            <div class="tab-pane fade show active" id="getting-started">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">快速入门</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>欢迎使用考勤系统！</h5>
+                        <p>本系统是一个现代化的企业考勤管理平台，支持多种考勤方式和丰富的统计功能。本指南将帮助您快速了解系统的基本功能和使用方法。</p>
+                        
+                        <h6 class="mt-4">系统主要功能</h6>
+                        <ul>
+                            <li>员工签到签退</li>
+                            <li>请假申请与审批</li>
+                            <li>人脸识别考勤</li>
+                            <li>考勤统计与报表</li>
+                            <li>用户与权限管理</li>
+                            <li>系统设置与配置</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">首次使用步骤</h6>
+                        <ol>
+                            <li>使用管理员账号登录系统</li>
+                            <li>进入"系统设置"进行基本配置</li>
+                            <li>在"用户管理"中添加员工账号</li>
+                            <li>设置考勤规则和工作时间</li>
+                            <li>员工登录并完善个人信息</li>
+                            <li>开始使用考勤功能</li>
+                        </ol>
+                        
+                        <div class="alert alert-info mt-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>提示：</strong>系统支持多种登录方式，包括用户名密码和人脸识别登录。
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 考勤管理 -->
+            <div class="tab-pane fade" id="attendance">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">考勤管理</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>考勤签到与签退</h5>
+                        <p>员工可以通过多种方式进行考勤签到和签退，系统会自动记录考勤时间和地点信息。</p>
+                        
+                        <h6 class="mt-4">签到方式</h6>
+                        <ul>
+                            <li><strong>网页签到：</strong>登录系统后，在首页点击"签到"按钮</li>
+                            <li><strong>人脸识别：</strong>在"人脸管理"页面使用摄像头进行人脸识别签到</li>
+                            <li><strong>二维码签到：</strong>扫描公司提供的二维码进行签到（需管理员启用）</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">考勤记录查看</h6>
+                        <p>您可以在"考勤记录"页面查看自己的历史考勤记录，包括：</p>
+                        <ul>
+                            <li>签到和签退时间</li>
+                            <li>工作时长</li>
+                            <li>考勤状态（正常、迟到、早退、缺勤等）</li>
+                            <li>考勤地点（如果启用位置记录）</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">考勤异常处理</h6>
+                        <p>如果发现考勤记录有误，您可以：</p>
+                        <ul>
+                            <li>联系管理员进行修正</li>
+                            <li>提交考勤申诉（如果启用申诉功能）</li>
+                            <li>添加备注说明异常情况</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 请假管理 -->
+            <div class="tab-pane fade" id="leave">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">请假管理</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>请假申请</h5>
+                        <p>员工可以通过系统提交各类请假申请，包括事假、病假、年假等。</p>
+                        
+                        <h6 class="mt-4">请假类型</h6>
+                        <ul>
+                            <li><strong>事假：</strong>因个人事务请假</li>
+                            <li><strong>病假：</strong>因身体不适请假，可能需要提供医疗证明</li>
+                            <li><strong>年假：</strong>员工年度带薪休假</li>
+                            <li><strong>婚假：</strong>结婚休假</li>
+                            <li><strong>产假/陪产假：</strong>生育相关休假</li>
+                            <li><strong>其他：</strong>公司规定的其他假期类型</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">请假申请流程</h6>
+                        <ol>
+                            <li>进入"请假申请"页面</li>
+                            <li>选择请假类型和时间</li>
+                            <li>填写请假原因和说明</li>
+                            <li>上传相关证明文件（如需要）</li>
+                            <li>提交申请等待审批</li>
+                            <li>查看审批结果和状态</li>
+                        </ol>
+                        
+                        <h6 class="mt-4">请假审批</h6>
+                        <p>具有审批权限的管理员可以在"请假审批"页面处理员工的请假申请：</p>
+                        <ul>
+                            <li>查看请假详情和证明文件</li>
+                            <li>批准或拒绝申请</li>
+                            <li>添加审批意见</li>
+                            <li>批量处理多个申请</li>
+                        </ul>
+                        
+                        <div class="alert alert-info mt-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>提示：</strong>请假余额可以在"请假申请"页面或个人资料中查看。
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 人脸识别 -->
+            <div class="tab-pane fade" id="face">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">人脸识别</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>人脸识别功能</h5>
+                        <p>系统支持人脸识别技术，用于考勤签到和登录验证，提供更便捷、安全的身份验证方式。</p>
+                        
+                        <h6 class="mt-4">人脸数据采集</h6>
+                        <p>首次使用人脸识别功能前，需要采集您的人脸数据：</p>
+                        <ol>
+                            <li>进入"人脸管理"页面</li>
+                            <li>点击"采集人脸数据"按钮</li>
+                            <li>允许浏览器访问摄像头</li>
+                            <li>按照提示调整面部位置和光线</li>
+                            <li>系统自动采集多张人脸照片</li>
+                            <li>采集完成后系统会进行训练</li>
+                        </ol>
+                        
+                        <h6 class="mt-4">人脸识别考勤</h6>
+                        <p>采集人脸数据后，您可以使用人脸识别进行考勤：</p>
+                        <ol>
+                            <li>进入"人脸管理"页面</li>
+                            <li>点击"人脸识别签到"按钮</li>
+                            <li>正对摄像头，保持面部清晰可见</li>
+                            <li>系统自动识别并完成签到</li>
+                        </ol>
+                        
+                        <h6 class="mt-4">人脸识别登录</h6>
+                        <p>系统支持使用人脸识别登录：</p>
+                        <ol>
+                            <li>在登录页面点击"人脸识别登录"选项</li>
+                            <li>允许浏览器访问摄像头</li>
+                            <li>正对摄像头，保持面部清晰可见</li>
+                            <li>系统识别成功后自动登录</li>
+                        </ol>
+                        
+                        <div class="alert alert-warning mt-4">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>注意：</strong>请确保在光线充足的环境下进行人脸识别，避免强光直射或背光。
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 统计报表 -->
+            <div class="tab-pane fade" id="statistics">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">统计报表</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>考勤统计功能</h5>
+                        <p>系统提供丰富的考勤统计功能，帮助管理员了解员工的出勤情况和工作效率。</p>
+                        
+                        <h6 class="mt-4">统计概览</h6>
+                        <p>在"考勤统计"页面，您可以查看：</p>
+                        <ul>
+                            <li>出勤率统计</li>
+                            <li>迟到早退情况</li>
+                            <li>请假天数统计</li>
+                            <li>加班时长统计</li>
+                            <li>部门对比分析</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">数据可视化</h6>
+                        <p>系统通过图表直观展示考勤数据：</p>
+                        <ul>
+                            <li><strong>趋势图：</strong>展示一段时间内的考勤变化趋势</li>
+                            <li><strong>分布图：</strong>展示不同考勤状态的分布情况</li>
+                            <li><strong>对比图：</strong>对比不同部门或员工的考勤情况</li>
+                            <li><strong>排名表：</strong>展示员工考勤排名</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">报表导出</h6>
+                        <p>您可以将统计数据导出为多种格式：</p>
+                        <ul>
+                            <li><strong>Excel报表：</strong>包含详细数据的Excel表格</li>
+                            <li><strong>PDF报表：</strong>格式化的PDF报告</li>
+                            <li><strong>图片导出：</strong>保存统计图表为图片</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">自定义报表</h6>
+                        <p>管理员可以创建自定义报表：</p>
+                        <ul>
+                            <li>选择统计时间范围</li>
+                            <li>筛选特定部门或员工</li>
+                            <li>选择要包含的数据字段</li>
+                            <li>设置报表格式和样式</li>
+                            <li>保存报表模板供后续使用</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 管理员功能 -->
+            <div class="tab-pane fade" id="admin">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">管理员功能</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>系统管理功能</h5>
+                        <p>管理员拥有系统的完整管理权限，可以配置系统参数、管理用户和审批流程等。</p>
+                        
+                        <h6 class="mt-4">用户管理</h6>
+                        <p>在"用户管理"页面，管理员可以：</p>
+                        <ul>
+                            <li>添加、编辑和删除用户账号</li>
+                            <li>设置用户角色和权限</li>
+                            <li>重置用户密码</li>
+                            <li>启用或禁用用户账号</li>
+                            <li>查看用户登录和操作日志</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">系统设置</h6>
+                        <p>在"系统设置"页面，管理员可以：</p>
+                        <ul>
+                            <li><strong>基本设置：</strong>公司信息、系统名称等</li>
+                            <li><strong>考勤设置：</strong>工作时间、考勤规则、迟到早退标准等</li>
+                            <li><strong>请假设置：</strong>请假类型、审批流程、假期天数等</li>
+                            <li><strong>通知设置：</strong>系统通知、邮件通知配置</li>
+                            <li><strong>安全设置：</strong>密码策略、登录限制等</li>
+                            <li><strong>系统设置：</strong>数据备份、系统维护等</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">数据管理</h6>
+                        <p>管理员可以管理系统数据：</p>
+                        <ul>
+                            <li>数据备份和恢复</li>
+                            <li>数据清理和归档</li>
+                            <li>数据导入和导出</li>
+                            <li>系统日志查看</li>
+                        </ul>
+                        
+                        <h6 class="mt-4">审批管理</h6>
+                        <p>管理员可以处理各类审批申请：</p>
+                        <ul>
+                            <li>请假审批</li>
+                            <li>考勤异常审批</li>
+                            <li>加班审批</li>
+                            <li>其他自定义审批流程</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 常见问题 -->
+            <div class="tab-pane fade" id="faq">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">常见问题</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="accordion" id="faqAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq1">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true">
+                                        忘记密码怎么办？
+                                    </button>
+                                </h2>
+                                <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>如果您忘记了登录密码，可以通过以下方式重置：</p>
+                                        <ol>
+                                            <li>在登录页面点击"忘记密码"链接</li>
+                                            <li>输入您的用户名或注册邮箱</li>
+                                            <li>系统会发送密码重置链接到您的邮箱</li>
+                                            <li>点击链接并设置新密码</li>
+                                        </ol>
+                                        <p>如果无法通过邮箱重置，请联系系统管理员重置密码。</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq2">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                                        人脸识别失败怎么办？
+                                    </button>
+                                </h2>
+                                <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>如果人脸识别失败，请尝试以下解决方案：</p>
+                                        <ul>
+                                            <li>确保光线充足，避免强光直射或背光</li>
+                                            <li>正对摄像头，保持面部清晰可见</li>
+                                            <li>摘掉帽子、眼镜等遮挡物</li>
+                                            <li>检查摄像头是否正常工作</li>
+                                            <li>如果仍然失败，可以重新采集人脸数据</li>
+                                        </ul>
+                                        <p>如果问题持续存在，请联系系统管理员。</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq3">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                                        考勤记录有误如何修改？
+                                    </button>
+                                </h2>
+                                <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>如果发现考勤记录有误，您可以：</p>
+                                        <ul>
+                                            <li>联系您的直接主管或部门管理员</li>
+                                            <li>说明具体情况并提供相关证明</li>
+                                            <li>由管理员在系统中修改考勤记录</li>
+                                            <li>如果系统启用了申诉功能，您也可以提交考勤申诉</li>
+                                        </ul>
+                                        <p>请注意，考勤记录修改需要管理员权限，普通员工无法直接修改。</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq4">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
+                                        请假申请被拒绝了怎么办？
+                                    </button>
+                                </h2>
+                                <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>如果您的请假申请被拒绝，您可以：</p>
+                                        <ul>
+                                            <li>查看审批意见，了解拒绝原因</li>
+                                            <li>根据审批意见修改申请内容</li>
+                                            <li>提供更充分的请假理由或证明材料</li>
+                                            <li>重新提交请假申请</li>
+                                            <li>如有疑问，可以直接联系审批人沟通</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq5">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5">
+                                        如何查看自己的请假余额？
+                                    </button>
+                                </h2>
+                                <div id="collapse5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>您可以通过以下方式查看请假余额：</p>
+                                        <ul>
+                                            <li>在"请假申请"页面，系统会显示各类假期的剩余天数</li>
+                                            <li>在"个人资料"页面查看详细的假期使用情况</li>
+                                            <li>在"请假记录"页面查看历史请假记录和余额变化</li>
+                                        </ul>
+                                        <p>如果您发现余额有误，请联系人力资源部门或系统管理员核实。</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq6">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6">
+                                        系统支持哪些浏览器？
+                                    </button>
+                                </h2>
+                                <div id="collapse6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        <p>本系统支持以下现代浏览器：</p>
+                                        <ul>
+                                            <li>Chrome 90及以上版本</li>
+                                            <li>Firefox 88及以上版本</li>
+                                            <li>Safari 14及以上版本</li>
+                                            <li>Edge 90及以上版本</li>
+                                        </ul>
+                                        <p>为了获得最佳体验，建议使用最新版本的Chrome或Firefox浏览器。请注意，Internet Explorer不支持本系统。</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 联系支持 -->
+            <div class="tab-pane fade" id="contact">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">联系支持</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>获取帮助与支持</h5>
+                        <p>如果您在使用过程中遇到问题或有任何建议，可以通过以下方式联系我们：</p>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="bi bi-envelope me-2"></i>邮件支持</h6>
+                                        <p>发送邮件至：<a href="mailto:support@attendance.com">support@attendance.com</a></p>
+                                        <p class="text-muted small">我们会在24小时内回复您的邮件</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="bi bi-telephone me-2"></i>电话支持</h6>
+                                        <p>工作日 9:00-18:00</p>
+                                        <p class="text-muted small">技术支持热线：400-123-4567</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="bi bi-chat-dots me-2"></i>在线客服</h6>
+                                        <p>点击右下角的客服图标开始对话</p>
+                                        <p class="text-muted small">工作时间：周一至周五 9:00-18:00</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="bi bi-book me-2"></i>知识库</h6>
+                                        <p>访问我们的在线知识库获取更多帮助</p>
+                                        <p class="text-muted small"><a href="#">https://help.attendance.com</a></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-4">提交反馈</h6>
+                        <p>您可以通过以下表单提交问题反馈或功能建议：</p>
+                        
+                        <form id="feedbackForm">
+                            <div class="mb-3">
+                                <label for="feedbackType" class="form-label">反馈类型</label>
+                                <select class="form-select" id="feedbackType" required>
+                                    <option value="">请选择...</option>
+                                    <option value="bug">问题报告</option>
+                                    <option value="feature">功能建议</option>
+                                    <option value="improvement">改进建议</option>
+                                    <option value="other">其他</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="feedbackSubject" class="form-label">主题</label>
+                                <input type="text" class="form-control" id="feedbackSubject" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="feedbackContent" class="form-label">详细描述</label>
+                                <textarea class="form-control" id="feedbackContent" rows="5" required></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="feedbackEmail" class="form-label">联系邮箱（可选）</label>
+                                <input type="email" class="form-control" id="feedbackEmail">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">提交反馈</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化页面
+    initPage();
+    
+    // 绑定事件
+    bindEvents();
+    
+    // 初始化页面
+    function initPage() {
+        // 初始化滚动监听，更新导航栏高亮
+        initScrollSpy();
+    }
+    
+    // 绑定事件
+    function bindEvents() {
+        // 反馈表单提交
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitFeedback();
+        });
+    }
+    
+    // 初始化滚动监听
+    function initScrollSpy() {
+        const scrollSpy = new bootstrap.ScrollSpy(document.body, {
+            target: '.list-group',
+            offset: 100
+        });
+    }
+    
+    // 提交反馈
+    function submitFeedback() {
+        const formData = {
+            type: document.getElementById('feedbackType').value,
+            subject: document.getElementById('feedbackSubject').value,
+            content: document.getElementById('feedbackContent').value,
+            email: document.getElementById('feedbackEmail').value
+        };
+        
+        // 这里应该调用API提交反馈
+        // 暂时模拟提交过程
+        showToast('正在提交反馈...', 'info');
+        
+        setTimeout(() => {
+            showToast('反馈提交成功，我们会尽快处理！', 'success');
+            document.getElementById('feedbackForm').reset();
+        }, 1000);
+    }
+});
+</script>
+{% endblock %}

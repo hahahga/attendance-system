@@ -1,0 +1,937 @@
+{% extends "base.html" %}
+
+{% block title %}人脸识别签退{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 全局样式 */
+    body {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    /* 主容器样式 */
+    .main-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    /* 人脸识别卡片样式 */
+    .face-recognition-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        background-color: #fff;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .face-recognition-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* 卡片头部样式 */
+    .card-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        border-bottom: none;
+    }
+    
+    .card-header-custom h3 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.5rem;
+    }
+    
+    /* 卡片主体样式 */
+    .card-body-custom {
+        padding: 2rem;
+    }
+    
+    /* 时间显示样式 */
+    .time-display {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        font-size: 1.2rem;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    /* 摄像头区域样式 */
+    .camera-container {
+        position: relative;
+        background-color: #000;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 640px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    #videoElement {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 10px;
+    }
+    
+    /* 人脸检测框样式 */
+    .detection-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+    
+    .face-box {
+        position: absolute;
+        border: 3px solid #4CAF50;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
+        animation: pulse 2s infinite;
+    }
+    
+    /* 状态消息样式 */
+    .status-message {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 500;
+        display: none;
+        transition: all 0.3s ease;
+    }
+    
+    .status-success {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: #2e7d32;
+        border: 1px solid #4CAF50;
+    }
+    
+    .status-danger {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: #c62828;
+        border: 1px solid #f44336;
+    }
+    
+    .status-warning {
+        background-color: rgba(255, 152, 0, 0.2);
+        color: #e65100;
+        border: 1px solid #FF9800;
+    }
+    
+    .status-info {
+        background-color: rgba(33, 150, 243, 0.2);
+        color: #0d47a1;
+        border: 1px solid #2196F3;
+    }
+    
+    /* 控制按钮样式 */
+    .camera-controls {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-control {
+        min-width: 120px;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        border: none;
+    }
+    
+    .btn-start {
+        background: linear-gradient(to right, #4CAF50, #45a049);
+        color: white;
+    }
+    
+    .btn-start:hover {
+        background: linear-gradient(to right, #45a049, #3d8b40);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .btn-stop {
+        background: linear-gradient(to right, #f44336, #d32f2f);
+        color: white;
+    }
+    
+    .btn-stop:hover {
+        background: linear-gradient(to right, #d32f2f, #b71c1c);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+    }
+    
+    .btn-control:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    /* 识别结果样式 */
+    .recognition-result {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .recognition-success {
+        background-color: rgba(76, 175, 80, 0.1);
+        border: 1px solid #4CAF50;
+        color: #2e7d32;
+    }
+    
+    .recognition-failure {
+        background-color: rgba(244, 67, 54, 0.1);
+        border: 1px solid #f44336;
+        color: #c62828;
+    }
+    
+    .result-icon {
+        margin-bottom: 1rem;
+        animation: bounceIn 0.8s ease;
+    }
+    
+    .result-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        animation: fadeInUp 0.8s ease;
+    }
+    
+    .result-message {
+        font-size: 1rem;
+        margin-bottom: 0;
+        animation: fadeInUp 0.8s ease 0.2s both;
+    }
+    
+    /* 签退信息面板样式 */
+    .attendance-info {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #4CAF50;
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .info-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+    
+    .info-item {
+        margin-bottom: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .info-label {
+        font-weight: 500;
+        color: #555;
+    }
+    
+    .info-value {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .info-icon {
+        margin-right: 0.5rem;
+        color: #667eea;
+    }
+    
+    /* 返回按钮样式 */
+    .back-btn {
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+    
+    .btn-back {
+        background: linear-gradient(to right, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-back:hover {
+        background: linear-gradient(to right, #764ba2, #667eea);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* 加载动画 */
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 10px;
+    }
+    
+    /* 页面加载器 */
+    .page-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+    }
+    
+    .loader-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    .loader-text {
+        color: white;
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: 500;
+    }
+    
+    .page-loader.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    /* 动画效果 */
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes bounceIn {
+        0% {
+            transform: scale(0.3);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.05);
+        }
+        70% {
+            transform: scale(0.9);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+        .card-body-custom {
+            padding: 1.5rem;
+        }
+        
+        .camera-controls {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .btn-control {
+            width: 100%;
+        }
+        
+        .info-item {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 页面加载器 -->
+<div class="page-loader" id="pageLoader">
+    <div>
+        <div class="loader-spinner"></div>
+        <div class="loader-text">正在加载人脸识别系统...</div>
+    </div>
+</div>
+
+<div class="container main-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card face-recognition-card">
+                <div class="card-header-custom">
+                    <h3><i class="bi bi-camera-video-fill me-2"></i>人脸识别签退</h3>
+                </div>
+                <div class="card-body card-body-custom">
+                    <!-- 时间显示 -->
+                    <div class="time-display" id="currentTime">
+                        当前时间：加载中...
+                    </div>
+                    
+                    <!-- 摄像头区域 -->
+                    <div class="camera-container">
+                        <video id="videoElement" autoplay></video>
+                        <div class="detection-overlay" id="detectionOverlay"></div>
+                    </div>
+                    
+                    <!-- 状态消息 -->
+                    <div class="status-message" id="statusMessage"></div>
+                    
+                    <!-- 控制按钮 -->
+                    <div class="camera-controls">
+                        <button id="startCameraBtn" class="btn btn-control btn-start">
+                            <i class="bi bi-camera-video me-2"></i>开启摄像头
+                        </button>
+                        <button id="stopCameraBtn" class="btn btn-control btn-stop" disabled>
+                            <i class="bi bi-camera-video-off me-2"></i>关闭摄像头
+                        </button>
+                        <button id="startRecognitionBtn" class="btn btn-control btn-start" disabled>
+                            <i class="bi bi-person-check me-2"></i>开始识别签退
+                        </button>
+                        <button id="stopRecognitionBtn" class="btn btn-control btn-stop" disabled>
+                            <i class="bi bi-person-x me-2"></i>停止识别
+                        </button>
+                    </div>
+                    
+                    <!-- 识别结果 -->
+                    <div class="recognition-result" id="recognitionResult">
+                        <div class="text-center">
+                            <div id="resultIcon" class="mb-2"></div>
+                            <h5 id="resultTitle"></h5>
+                            <p id="resultMessage"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- 签退信息 -->
+                    <div class="attendance-info" id="attendanceInfo">
+                        <div class="info-title">
+                            <i class="bi bi-info-circle-fill me-2"></i>签退信息
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="bi bi-person-fill info-icon"></i>姓名：
+                            </span>
+                            <span class="info-value" id="userName"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="bi bi-building info-icon"></i>部门：
+                            </span>
+                            <span class="info-value" id="userDepartment"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="bi bi-clock-fill info-icon"></i>签退时间：
+                            </span>
+                            <span class="info-value" id="clockOutTime"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="bi bi-check-circle-fill info-icon"></i>签退状态：
+                            </span>
+                            <span class="info-value" id="attendanceStatus"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="bi bi-geo-alt-fill info-icon"></i>签退位置：
+                            </span>
+                            <span class="info-value" id="locationInfo">获取中...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">
+                                <i class="bi bi-hourglass-split info-icon"></i>今日工作时长：
+                            </span>
+                            <span class="info-value" id="workDuration"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- 返回按钮 -->
+                    <div class="back-btn">
+                        <a href="/attendance" class="btn btn-back">
+                            <i class="bi bi-arrow-left me-2"></i>返回考勤主页
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 页面加载完成后隐藏加载器
+        setTimeout(() => {
+            const pageLoader = document.getElementById('pageLoader');
+            pageLoader.classList.add('hidden');
+        }, 1000);
+        
+        let videoStream = null;
+        let recognitionInterval = null;
+        let isRecognizing = false;
+        
+        // 当前用户信息
+        const current_user_name = "{{ current_user.name if current_user else '' }}";
+        const current_user_department = "{{ current_user.department.name if current_user and current_user.department else '' }}";
+        
+        // 当前位置信息
+        let currentLocation = {
+            latitude: null,
+            longitude: null,
+            address: '位置获取中...'
+        };
+        
+        // 更新当前时间
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        // 每秒更新时间
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime();
+        
+        // 获取位置信息
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        currentLocation.latitude = position.coords.latitude;
+                        currentLocation.longitude = position.coords.longitude;
+                        
+                        // 使用逆地理编码获取地址
+                        reverseGeocode(currentLocation.latitude, currentLocation.longitude);
+                    },
+                    function(error) {
+                        console.error('获取位置失败:', error);
+                        currentLocation.address = '无法获取位置信息';
+                        document.getElementById('locationInfo').textContent = currentLocation.address;
+                    }
+                );
+            } else {
+                currentLocation.address = '浏览器不支持定位功能';
+                document.getElementById('locationInfo').textContent = currentLocation.address;
+            }
+        }
+        
+        // 逆地理编码获取地址
+        function reverseGeocode(lat, lng) {
+            // 使用百度地图API进行逆地理编码
+            // 注意：实际使用时需要申请百度地图API密钥
+            const ak = 'your_baidu_map_api_key'; // 替换为实际的API密钥
+            const url = `https://api.map.baidu.com/reverse_geocoding/v3/?ak=${ak}&location=${lat},${lng}&output=json&coordtype=wgs84ll`;
+            
+            // 模拟API调用（实际应用中应该使用真实的API调用）
+            // 这里我们使用模拟数据
+            setTimeout(() => {
+                // 模拟获取到的地址信息
+                currentLocation.address = '北京市朝阳区建国门外大街1号';
+                document.getElementById('locationInfo').textContent = currentLocation.address;
+            }, 1000);
+            
+            /*
+            // 实际API调用代码
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 0) {
+                        currentLocation.address = data.result.formatted_address;
+                        document.getElementById('locationInfo').textContent = currentLocation.address;
+                    } else {
+                        currentLocation.address = '地址解析失败';
+                        document.getElementById('locationInfo').textContent = currentLocation.address;
+                    }
+                })
+                .catch(error => {
+                    console.error('地址解析失败:', error);
+                    currentLocation.address = '地址解析失败';
+                    document.getElementById('locationInfo').textContent = currentLocation.address;
+                });
+            */
+        }
+        
+        // 页面加载时获取位置
+        getCurrentLocation();
+        
+        // 绑定按钮事件
+        document.getElementById('startCameraBtn').addEventListener('click', startCamera);
+        document.getElementById('stopCameraBtn').addEventListener('click', stopCamera);
+        document.getElementById('startRecognitionBtn').addEventListener('click', startRecognition);
+        document.getElementById('stopRecognitionBtn').addEventListener('click', stopRecognition);
+        
+        // 开启摄像头
+        function startCamera() {
+            const video = document.getElementById('videoElement');
+            
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    videoStream = stream;
+                    
+                    // 更新按钮状态
+                    document.getElementById('startCameraBtn').disabled = true;
+                    document.getElementById('stopCameraBtn').disabled = false;
+                    document.getElementById('startRecognitionBtn').disabled = false;
+                    
+                    showStatusMessage('摄像头已开启，请点击"开始识别签退"按钮', 'info');
+                })
+                .catch(function(err) {
+                    console.error('无法访问摄像头:', err);
+                    showStatusMessage('无法访问摄像头，请检查权限设置', 'danger');
+                });
+        }
+        
+        // 关闭摄像头
+        function stopCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+                
+                // 停止识别
+                if (isRecognizing) {
+                    stopRecognition();
+                }
+                
+                // 更新按钮状态
+                document.getElementById('startCameraBtn').disabled = false;
+                document.getElementById('stopCameraBtn').disabled = true;
+                document.getElementById('startRecognitionBtn').disabled = true;
+                
+                // 清除状态消息
+                hideStatusMessage();
+            }
+        }
+        
+        // 获取位置信息
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const latitude = position.coords.latitude.toFixed(6);
+                        const longitude = position.coords.longitude.toFixed(6);
+                        document.getElementById('locationInfo').textContent = `${latitude}, ${longitude}`;
+                    },
+                    function(error) {
+                        console.error('获取位置失败:', error);
+                        document.getElementById('locationInfo').textContent = '位置获取失败';
+                    }
+                );
+            } else {
+                document.getElementById('locationInfo').textContent = '浏览器不支持定位';
+            }
+        }
+        
+        // 开始人脸识别
+        function startRecognition() {
+            isRecognizing = true;
+            
+            // 更新按钮状态
+            document.getElementById('startRecognitionBtn').disabled = true;
+            document.getElementById('stopRecognitionBtn').disabled = false;
+            
+            showStatusMessage('正在进行人脸识别，请正对摄像头...', 'info');
+            
+            // 获取位置信息
+            getLocation();
+            
+            // 模拟人脸检测
+            simulateFaceDetection();
+            
+            // 定期进行人脸识别
+            recognitionInterval = setInterval(() => {
+                if (!isRecognizing) return;
+                
+                // 捕获当前帧
+                captureAndRecognize();
+            }, 2000);
+        }
+        
+        // 停止人脸识别
+        function stopRecognition() {
+            isRecognizing = false;
+            
+            if (recognitionInterval) {
+                clearInterval(recognitionInterval);
+                recognitionInterval = null;
+            }
+            
+            // 更新按钮状态
+            document.getElementById('startRecognitionBtn').disabled = false;
+            document.getElementById('stopRecognitionBtn').disabled = true;
+            
+            // 清除人脸检测框
+            document.getElementById('detectionOverlay').innerHTML = '';
+            
+            showStatusMessage('人脸识别已停止', 'warning');
+        }
+        
+        // 模拟人脸检测
+        function simulateFaceDetection() {
+            const overlay = document.getElementById('detectionOverlay');
+            
+            // 模拟检测到人脸
+            setTimeout(() => {
+                if (!isRecognizing) return;
+                
+                // 创建人脸框
+                const faceBox = document.createElement('div');
+                faceBox.className = 'face-box';
+                faceBox.style.width = '200px';
+                faceBox.style.height = '250px';
+                faceBox.style.top = '50px';
+                faceBox.style.left = '50%';
+                faceBox.style.transform = 'translateX(-50%)';
+                
+                overlay.innerHTML = '';
+                overlay.appendChild(faceBox);
+                
+                showStatusMessage('检测到人脸，正在识别...', 'info');
+            }, 1000);
+        }
+        
+        // 捕获并识别人脸
+        function captureAndRecognize() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // 将图像转换为base64
+            const imageData = canvas.toDataURL('image/jpeg');
+            
+            // 发送到后端进行识别
+            recognizeFace(imageData);
+        }
+        
+        // 识别人脸
+        function recognizeFace(imageData) {
+            // 显示加载状态
+            showStatusMessage('<span class="loading-spinner"></span>正在识别中...', 'info');
+            
+            // 发送到后端进行识别
+            axios.post('/attendance/face_clock_out', {
+                image: imageData,
+                location: currentLocation
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 构造签退数据对象
+                    const attendanceData = {
+                        user: {
+                            name: current_user_name || '用户',
+                            department: current_user_department || '部门'
+                        },
+                        clock_out_time: data.time || new Date().toLocaleString('zh-CN'),
+                        status: '正常签退',
+                        work_duration: data.work_duration || '工作时长计算中...',
+                        location: data.location || currentLocation
+                    };
+                    
+                    showAttendanceSuccess(attendanceData);
+                    stopRecognition();
+                } else {
+                    showRecognitionFailure(data.detail || '识别失败，请重试');
+                }
+            })
+            .catch(error => {
+                console.error('人脸识别失败:', error);
+                showRecognitionFailure('识别失败，请重试');
+            });
+            
+            // 模拟API调用（注释掉）
+            /*
+            // 模拟API请求
+            // 实际应用中，这里应该发送到后端API
+            setTimeout(() => {
+                // 模拟识别成功
+                const mockUser = {
+                    id: 1,
+                    name: '张三',
+                    department: '技术部'
+                };
+                
+                // 计算工作时长（模拟）
+                const now = new Date();
+                const clockInTime = new Date(now);
+                clockInTime.setHours(9, 0, 0); // 假设9点上班
+                
+                const workHours = Math.floor((now - clockInTime) / (1000 * 60 * 60));
+                const workMinutes = Math.floor(((now - clockInTime) % (1000 * 60 * 60)) / (1000 * 60));
+                const workDuration = `${workHours}小时${workMinutes}分钟`;
+                
+                // 模拟签退成功
+                const attendanceData = {
+                    user: mockUser,
+                    clock_out_time: now.toLocaleString('zh-CN'),
+                    status: '正常签退',
+                    work_duration: workDuration
+                };
+                
+                // 显示签退成功
+                showAttendanceSuccess(attendanceData);
+                
+                // 停止识别
+                stopRecognition();
+            }, 1500);
+            */
+        }
+        
+        // 显示签退成功
+        function showAttendanceSuccess(attendanceData) {
+            const resultDiv = document.getElementById('recognitionResult');
+            const infoDiv = document.getElementById('attendanceInfo');
+            
+            // 设置结果
+            document.getElementById('resultIcon').innerHTML = '<i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>';
+            document.getElementById('resultTitle').textContent = '签退成功！';
+            document.getElementById('resultMessage').textContent = `${attendanceData.user.name}，您已成功签退`;
+            
+            // 设置签退信息
+            document.getElementById('userName').textContent = attendanceData.user.name;
+            document.getElementById('userDepartment').textContent = attendanceData.user.department;
+            document.getElementById('clockOutTime').textContent = attendanceData.clock_out_time;
+            document.getElementById('attendanceStatus').textContent = attendanceData.status;
+            document.getElementById('attendanceStatus').className = 'text-success';
+            document.getElementById('workDuration').textContent = attendanceData.work_duration;
+            
+            // 设置位置信息
+            if (attendanceData.location && attendanceData.location.address) {
+                document.getElementById('locationInfo').textContent = attendanceData.location.address;
+            }
+            
+            // 显示结果和信息
+            resultDiv.className = 'recognition-result recognition-success';
+            resultDiv.style.display = 'block';
+            infoDiv.style.display = 'block';
+            
+            // 隐藏状态消息
+            hideStatusMessage();
+        }
+        
+        // 显示识别失败
+        function showRecognitionFailure(message) {
+            const resultDiv = document.getElementById('recognitionResult');
+            
+            // 设置结果
+            document.getElementById('resultIcon').innerHTML = '<i class="bi bi-x-circle-fill text-danger" style="font-size: 3rem;"></i>';
+            document.getElementById('resultTitle').textContent = '识别失败';
+            document.getElementById('resultMessage').textContent = message;
+            
+            // 显示结果
+            resultDiv.className = 'recognition-result recognition-failure';
+            resultDiv.style.display = 'block';
+            
+            // 隐藏签退信息
+            document.getElementById('attendanceInfo').style.display = 'none';
+            
+            // 隐藏状态消息
+            hideStatusMessage();
+        }
+        
+        // 显示状态消息
+        function showStatusMessage(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            
+            // 设置消息和样式
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message';
+            
+            if (type === 'success') {
+                statusDiv.classList.add('status-success');
+            } else if (type === 'danger') {
+                statusDiv.classList.add('status-danger');
+            } else if (type === 'warning') {
+                statusDiv.classList.add('status-warning');
+            } else {
+                statusDiv.classList.add('status-info');
+            }
+            
+            statusDiv.style.display = 'block';
+        }
+        
+        // 隐藏状态消息
+        function hideStatusMessage() {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

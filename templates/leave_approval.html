@@ -1,0 +1,832 @@
+{% extends "base.html" %}
+
+{% block title %}请假审批 - 考勤系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">请假审批</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="exportBtn">
+                        <i class="bi bi-download"></i> 导出
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="filterBtn">
+                        <i class="bi bi-funnel"></i> 筛选
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 筛选表单 -->
+<div class="row" id="filterForm" style="display: none;">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">筛选条件</h5>
+            </div>
+            <div class="card-body">
+                <form id="approvalFilterForm">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="startDate" class="form-label">申请日期开始</label>
+                            <input type="date" class="form-control" id="startDate" name="start_date">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="endDate" class="form-label">申请日期结束</label>
+                            <input type="date" class="form-control" id="endDate" name="end_date">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="leaveType" class="form-label">请假类型</label>
+                            <select class="form-select" id="leaveType" name="leave_type">
+                                <option value="">全部</option>
+                                <option value="事假">事假</option>
+                                <option value="病假">病假</option>
+                                <option value="年假">年假</option>
+                                <option value="婚假">婚假</option>
+                                <option value="产假">产假</option>
+                                <option value="丧假">丧假</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="department" class="form-label">部门</label>
+                            <select class="form-select" id="department" name="department_id">
+                                <option value="">全部</option>
+                                <option value="1">技术部</option>
+                                <option value="2">人事部</option>
+                                <option value="3">财务部</option>
+                                <option value="4">市场部</option>
+                                <option value="5">行政部</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="applicant" class="form-label">申请人</label>
+                            <input type="text" class="form-control" id="applicant" name="applicant">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="status" class="form-label">状态</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">全部</option>
+                                <option value="待审批">待审批</option>
+                                <option value="已批准">已批准</option>
+                                <option value="已拒绝">已拒绝</option>
+                                <option value="已取消">已取消</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="urgency" class="form-label">紧急程度</label>
+                            <select class="form-select" id="urgency" name="urgency">
+                                <option value="">全部</option>
+                                <option value="低">低</option>
+                                <option value="中">中</option>
+                                <option value="高">高</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3 d-flex align-items-end">
+                            <div class="btn-group w-100">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> 查询
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="resetFilterBtn">
+                                    <i class="bi bi-arrow-clockwise"></i> 重置
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="hideFilterBtn">
+                                    <i class="bi bi-x"></i> 关闭
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 统计信息 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">待审批</h5>
+                <h2 id="pendingCount">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">已批准</h5>
+                <h2 id="approvedCount">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">已拒绝</h5>
+                <h2 id="rejectedCount">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">本月审批</h5>
+                <h2 id="monthlyCount">0</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 审批列表 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">请假申请列表</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="approvalTable">
+                        <thead>
+                            <tr>
+                                <th>申请日期</th>
+                                <th>申请人</th>
+                                <th>部门</th>
+                                <th>请假类型</th>
+                                <th>请假时间</th>
+                                <th>请假天数</th>
+                                <th>紧急程度</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approvalTableBody">
+                            <!-- 数据将通过JavaScript动态填充 -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页 -->
+                <nav aria-label="请假申请分页">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- 分页按钮将通过JavaScript动态生成 -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 请假详情模态框 -->
+<div class="modal fade" id="leaveDetailModal" tabindex="-1" aria-labelledby="leaveDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="leaveDetailModalLabel">请假详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>申请人:</strong></td>
+                                <td id="detailApplicant"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>部门:</strong></td>
+                                <td id="detailDepartment"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>职位:</strong></td>
+                                <td id="detailPosition"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>请假类型:</strong></td>
+                                <td id="detailLeaveType"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>请假时间:</strong></td>
+                                <td id="detailLeaveTime"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>请假天数:</strong></td>
+                                <td id="detailLeaveDays"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>申请日期:</strong></td>
+                                <td id="detailApplicationDate"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>紧急程度:</strong></td>
+                                <td id="detailUrgency"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>状态:</strong></td>
+                                <td id="detailStatus"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>剩余假期:</strong></td>
+                                <td id="detailRemainingLeave"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>请假原因:</h6>
+                        <p id="detailReason"></p>
+                    </div>
+                </div>
+                
+                <div class="row mt-3" id="detailAttachmentRow" style="display: none;">
+                    <div class="col-12">
+                        <h6>附件:</h6>
+                        <a id="detailAttachment" href="#" target="_blank">查看附件</a>
+                    </div>
+                </div>
+                
+                <div class="row mt-3" id="detailApprovalRow" style="display: none;">
+                    <div class="col-12">
+                        <h6>审批意见:</h6>
+                        <p id="detailApprovalComment"></p>
+                    </div>
+                </div>
+                
+                <div class="row mt-3" id="detailHistoryRow" style="display: none;">
+                    <div class="col-12">
+                        <h6>审批历史:</h6>
+                        <div id="approvalHistory"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-warning" id="rejectLeaveBtn">拒绝</button>
+                <button type="button" class="btn btn-success" id="approveLeaveBtn">批准</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 审批意见模态框 -->
+<div class="modal fade" id="approvalCommentModal" tabindex="-1" aria-labelledby="approvalCommentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approvalCommentModalLabel">审批意见</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="approvalCommentForm">
+                    <input type="hidden" id="approvalLeaveId" name="leave_id">
+                    <input type="hidden" id="approvalAction" name="action">
+                    
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">审批意见</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="4" placeholder="请输入审批意见..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notifyApplicant" name="notify_applicant" checked>
+                            <label class="form-check-label" for="notifyApplicant">
+                                通知申请人
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="submitApprovalBtn">提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批量审批模态框 -->
+<div class="modal fade" id="batchApprovalModal" tabindex="-1" aria-labelledby="batchApprovalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="batchApprovalModalLabel">批量审批</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="batchApprovalForm">
+                    <div class="mb-3">
+                        <label for="batchAction" class="form-label">审批操作</label>
+                        <select class="form-select" id="batchAction" name="action">
+                            <option value="approve">批准</option>
+                            <option value="reject">拒绝</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="batchComment" class="form-label">审批意见</label>
+                        <textarea class="form-control" id="batchComment" name="comment" rows="4" placeholder="请输入审批意见..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="batchNotifyApplicant" name="notify_applicant" checked>
+                            <label class="form-check-label" for="batchNotifyApplicant">
+                                通知申请人
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 已选择 <span id="selectedCount">0</span> 个申请进行批量审批
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="submitBatchApprovalBtn">提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化变量
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalItems = 0;
+    let currentFilters = {};
+    let currentLeaveId = null;
+    let selectedLeaveIds = new Set();
+    
+    // 加载请假申请
+    loadLeaveApplications();
+    
+    // 加载统计信息
+    loadStatistics();
+    
+    // 筛选按钮点击事件
+    document.getElementById('filterBtn').addEventListener('click', function() {
+        const filterForm = document.getElementById('filterForm');
+        filterForm.style.display = filterForm.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    // 隐藏筛选表单
+    document.getElementById('hideFilterBtn').addEventListener('click', function() {
+        document.getElementById('filterForm').style.display = 'none';
+    });
+    
+    // 筛选表单提交
+    document.getElementById('approvalFilterForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 获取筛选条件
+        const formData = new FormData(this);
+        currentFilters = Object.fromEntries(formData.entries());
+        
+        // 重置页码并重新加载数据
+        currentPage = 1;
+        loadLeaveApplications();
+        loadStatistics();
+    });
+    
+    // 重置筛选条件
+    document.getElementById('resetFilterBtn').addEventListener('click', function() {
+        document.getElementById('approvalFilterForm').reset();
+        currentFilters = {};
+        currentPage = 1;
+        loadLeaveApplications();
+        loadStatistics();
+    });
+    
+    // 导出按钮点击事件
+    document.getElementById('exportBtn').addEventListener('click', function() {
+        exportLeaveApplications();
+    });
+    
+    // 批准请假申请
+    document.getElementById('approveLeaveBtn').addEventListener('click', function() {
+        showApprovalCommentModal(currentLeaveId, 'approve');
+    });
+    
+    // 拒绝请假申请
+    document.getElementById('rejectLeaveBtn').addEventListener('click', function() {
+        showApprovalCommentModal(currentLeaveId, 'reject');
+    });
+    
+    // 提交审批意见
+    document.getElementById('submitApprovalBtn').addEventListener('click', function() {
+        submitApproval();
+    });
+    
+    // 提交批量审批
+    document.getElementById('submitBatchApprovalBtn').addEventListener('click', function() {
+        submitBatchApproval();
+    });
+    
+    // 加载请假申请函数
+    function loadLeaveApplications() {
+        const params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('page_size', pageSize);
+        
+        // 添加筛选条件
+        Object.keys(currentFilters).forEach(key => {
+            if (currentFilters[key]) {
+                params.append(key, currentFilters[key]);
+            }
+        });
+        
+        axios.get(`/api/v1/leave/pending?${params.toString()}`)
+            .then(response => {
+                const data = response.data;
+                
+                // 更新分页信息
+                totalItems = data.total;
+                updatePagination();
+                
+                // 更新表格数据
+                updateApprovalTable(data.items);
+            })
+            .catch(error => {
+                console.error('加载请假申请失败:', error);
+                showToast('加载请假申请失败', 'danger');
+            });
+    }
+    
+    // 更新请假申请表格
+    function updateApprovalTable(applications) {
+        const tbody = document.getElementById('approvalTableBody');
+        tbody.innerHTML = '';
+        
+        if (applications.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center">暂无申请</td></tr>';
+            return;
+        }
+        
+        applications.forEach(app => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="${app.id}" id="check-${app.id}">
+                        <label class="form-check-label" for="check-${app.id}">${app.application_date}</label>
+                    </div>
+                </td>
+                <td>${app.applicant_name}</td>
+                <td>${app.department_name}</td>
+                <td>${app.leave_type}</td>
+                <td>${app.start_date} 至 ${app.end_date}</td>
+                <td>${app.days}天</td>
+                <td><span class="badge ${getUrgencyBadgeClass(app.urgency)}">${app.urgency}</span></td>
+                <td><span class="badge ${getLeaveStatusBadgeClass(app.status)}">${app.status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-info view-btn" data-id="${app.id}">
+                        <i class="bi bi-eye"></i> 查看
+                    </button>
+                    <button class="btn btn-sm btn-outline-success approve-btn" data-id="${app.id}">
+                        <i class="bi bi-check-circle"></i> 批准
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger reject-btn" data-id="${app.id}">
+                        <i class="bi bi-x-circle"></i> 拒绝
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        // 添加复选框事件
+        tbody.querySelectorAll('.form-check-input').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const leaveId = this.value;
+                if (this.checked) {
+                    selectedLeaveIds.add(leaveId);
+                } else {
+                    selectedLeaveIds.delete(leaveId);
+                }
+                updateBatchApprovalButton();
+            });
+        });
+        
+        // 添加按钮事件
+        tbody.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-id');
+                viewLeaveDetail(leaveId);
+            });
+        });
+        
+        tbody.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-id');
+                approveLeaveApplication(leaveId);
+            });
+        });
+        
+        tbody.querySelectorAll('.reject-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const leaveId = this.getAttribute('data-id');
+                rejectLeaveApplication(leaveId);
+            });
+        });
+    }
+    
+    // 更新分页控件
+    function updatePagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        
+        const totalPages = Math.ceil(totalItems / pageSize);
+        
+        // 上一页按钮
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage - 1}">上一页</a>`;
+        pagination.appendChild(prevLi);
+        
+        // 页码按钮
+        for (let i = 1; i <= totalPages; i++) {
+            // 只显示当前页附近的页码
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                pagination.appendChild(li);
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                // 添加省略号
+                const li = document.createElement('li');
+                li.className = 'page-item disabled';
+                li.innerHTML = '<a class="page-link" href="#">...</a>';
+                pagination.appendChild(li);
+            }
+        }
+        
+        // 下一页按钮
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage + 1}">下一页</a>`;
+        pagination.appendChild(nextLi);
+        
+        // 添加页码点击事件
+        pagination.querySelectorAll('.page-link:not(.disabled)').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = parseInt(this.getAttribute('data-page'));
+                if (page !== currentPage) {
+                    currentPage = page;
+                    loadLeaveApplications();
+                }
+            });
+        });
+    }
+    
+    // 加载统计信息
+    function loadStatistics() {
+        const params = new URLSearchParams();
+        
+        // 添加筛选条件
+        Object.keys(currentFilters).forEach(key => {
+            if (currentFilters[key]) {
+                params.append(key, currentFilters[key]);
+            }
+        });
+        
+        axios.get(`/api/v1/leave/approval/statistics?${params.toString()}`)
+            .then(response => {
+                const data = response.data;
+                
+                document.getElementById('pendingCount').textContent = data.pending_count || 0;
+                document.getElementById('approvedCount').textContent = data.approved_count || 0;
+                document.getElementById('rejectedCount').textContent = data.rejected_count || 0;
+                document.getElementById('monthlyCount').textContent = data.monthly_count || 0;
+            })
+            .catch(error => {
+                console.error('加载统计信息失败:', error);
+            });
+    }
+    
+    // 查看请假详情
+    function viewLeaveDetail(leaveId) {
+        axios.get(`/api/v1/leave/${leaveId}`)
+            .then(response => {
+                const data = response.data;
+                currentLeaveId = data.id;
+                
+                // 填充详情数据
+                document.getElementById('detailApplicant').textContent = data.applicant_name;
+                document.getElementById('detailDepartment').textContent = data.department_name;
+                document.getElementById('detailPosition').textContent = data.position || '--';
+                document.getElementById('detailLeaveType').textContent = data.leave_type;
+                document.getElementById('detailLeaveTime').textContent = `${data.start_date} 至 ${data.end_date}`;
+                document.getElementById('detailLeaveDays').textContent = `${data.days}天`;
+                document.getElementById('detailApplicationDate').textContent = data.application_date;
+                document.getElementById('detailUrgency').innerHTML = `<span class="badge ${getUrgencyBadgeClass(data.urgency)}">${data.urgency}</span>`;
+                
+                // 设置状态
+                const statusElement = document.getElementById('detailStatus');
+                statusElement.textContent = data.status;
+                statusElement.className = `badge ${getLeaveStatusBadgeClass(data.status)}`;
+                
+                // 设置剩余假期
+                document.getElementById('detailRemainingLeave').textContent = data.remaining_leave ? `${data.remaining_leave}天` : '--';
+                
+                // 设置请假原因
+                document.getElementById('detailReason').textContent = data.reason;
+                
+                // 显示附件（如果有）
+                if (data.attachment) {
+                    document.getElementById('detailAttachmentRow').style.display = 'block';
+                    document.getElementById('detailAttachment').href = data.attachment;
+                } else {
+                    document.getElementById('detailAttachmentRow').style.display = 'none';
+                }
+                
+                // 显示审批意见（如果有）
+                if (data.approval_comment) {
+                    document.getElementById('detailApprovalRow').style.display = 'block';
+                    document.getElementById('detailApprovalComment').textContent = data.approval_comment;
+                } else {
+                    document.getElementById('detailApprovalRow').style.display = 'none';
+                }
+                
+                // 显示审批历史（如果有）
+                if (data.approval_history && data.approval_history.length > 0) {
+                    document.getElementById('detailHistoryRow').style.display = 'block';
+                    const historyContainer = document.getElementById('approvalHistory');
+                    historyContainer.innerHTML = '';
+                    
+                    data.approval_history.forEach(history => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'card mb-2';
+                        historyItem.innerHTML = `
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>${history.approver_name}</strong> - ${history.action === 'approve' ? '批准' : '拒绝'}
+                                        <div class="small text-muted">${history.approval_time}</div>
+                                    </div>
+                                </div>
+                                ${history.comment ? `<div class="mt-1">${history.comment}</div>` : ''}
+                            </div>
+                        `;
+                        historyContainer.appendChild(historyItem);
+                    });
+                } else {
+                    document.getElementById('detailHistoryRow').style.display = 'none';
+                }
+                
+                // 根据状态显示/隐藏审批按钮
+                const approveBtn = document.getElementById('approveLeaveBtn');
+                const rejectBtn = document.getElementById('rejectLeaveBtn');
+                
+                if (data.status === '待审批') {
+                    approveBtn.style.display = 'inline-block';
+                    rejectBtn.style.display = 'inline-block';
+                } else {
+                    approveBtn.style.display = 'none';
+                    rejectBtn.style.display = 'none';
+                }
+                
+                // 显示模态框
+                const modal = new bootstrap.Modal(document.getElementById('leaveDetailModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('获取请假详情失败:', error);
+                showToast('获取请假详情失败', 'danger');
+            });
+    }
+    
+    // 批准请假申请
+    function approveLeaveApplication(leaveId) {
+        viewLeaveDetail(leaveId);
+        // 在查看详情后，用户可以点击批准按钮
+    }
+    
+    // 拒绝请假申请
+    function rejectLeaveApplication(leaveId) {
+        viewLeaveDetail(leaveId);
+        // 在查看详情后，用户可以点击拒绝按钮
+    }
+    
+    // 显示审批意见模态框
+    function showApprovalCommentModal(leaveId, action) {
+        document.getElementById('approvalLeaveId').value = leaveId;
+        document.getElementById('approvalAction').value = action;
+        document.getElementById('comment').value = '';
+        document.getElementById('notifyApplicant').checked = true;
+        
+        // 更新模态框标题
+        const modalTitle = document.getElementById('approvalCommentModalLabel');
+        modalTitle.textContent = action === 'approve' ? '批准意见' : '拒绝原因';
+        
+        // 显示模态框
+        const modal = new bootstrap.Modal(document.getElementById('approvalCommentModal'));
+        modal.show();
+    }
+    
+    // 提交审批
+    function submitApproval() {
+        const leaveId = document.getElementById('approvalLeaveId').value;
+        const action = document.getElementById('approvalAction').value;
+        const comment = document.getElementById('comment').value;
+        const notifyApplicant = document.getElementById('notifyApplicant').checked;
+        
+        const data = {
+            action: action,
+            comment: comment,
+            notify_applicant: notifyApplicant
+        };
+        
+        axios.post(`/api/v1/leave/${leaveId}/approve`, data)
+            .then(response => {
+                showToast(`请假申请已${action === 'approve' ? '批准' : '拒绝'}`, 'success');
+                
+                // 关闭模态框
+                const detailModal = bootstrap.Modal.getInstance(document.getElementById('leaveDetailModal'));
+                detailModal.hide();
+                
+                const commentModal = bootstrap.Modal.getInstance(document.getElementById('approvalCommentModal'));
+                commentModal.hide();
+                
+                // 重新加载数据
+                loadLeaveApplications();
+                loadStatistics();
+            })
+            .catch(error => {
+                console.error('提交审批失败:', error);
+                showToast(error.response?.data?.detail || '提交失败', 'danger');
+            });
+    }
+    
+    // 更新批量审批按钮
+    function updateBatchApprovalButton() {
+        const count = selectedLeaveIds.size;
+        document.getElementById('selectedCount').textContent = count;
+        
+        // 这里可以添加/移除批量审批按钮的启用/禁用状态
+        // 例如，如果没有选中任何项，则禁用按钮
+    }
+    
+    // 导出请假申请
+    function exportLeaveApplications() {
+        const params = new URLSearchParams();
+        
+        // 添加筛选条件
+        Object.keys(currentFilters).forEach(key => {
+            if (currentFilters[key]) {
+                params.append(key, currentFilters[key]);
+            }
+        });
+        
+        // 打开导出链接
+        window.open(`/api/v1/leave/approval/export?${params.toString()}`, '_blank');
+    }
+    
+    // 获取请假状态徽章样式
+    function getLeaveStatusBadgeClass(status) {
+        switch(status) {
+            case '已批准':
+                return 'bg-success';
+            case '已拒绝':
+                return 'bg-danger';
+            case '待审批':
+                return 'bg-warning';
+            case '已取消':
+                return 'bg-secondary';
+            default:
+                return 'bg-secondary';
+        }
+    }
+    
+    // 获取紧急程度徽章样式
+    function getUrgencyBadgeClass(urgency) {
+        switch(urgency) {
+            case '高':
+                return 'bg-danger';
+            case '中':
+                return 'bg-warning';
+            case '低':
+                return 'bg-info';
+            default:
+                return 'bg-secondary';
+        }
+    }
+});
+</script>
+{% endblock %}

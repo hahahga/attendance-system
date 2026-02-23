@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}访问被拒绝{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4>访问被拒绝</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-exclamation-triangle fa-5x text-danger"></i>
+                    </div>
+                    <h3 class="text-center">403 - 访问被拒绝</h3>
+                    <p class="text-center">您没有权限访问此页面。</p>
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-primary">返回首页</a>
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('logout') }}" class="btn btn-secondary">退出登录</a>
+                        {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-secondary">登录</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
